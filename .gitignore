@@ -1,0 +1,7 @@
+# Experiment Logs
+logs/
+
+wandb/
+
+# Development
+.vscode/
