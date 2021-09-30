@@ -2,11 +2,110 @@ import argparse
 import gym
 import numpy as np
 import os
+import wandb
+import ray
+
+def get_agent(args):
+    """
+    Purpose: Import the algorithm and policy to create an agent. 
+    Returns: Agent
+    Exceptions: Malformed args to create an agent. 
+    """
+    #### Algorithm: PPO ####
+    if args.algo == "ppo":
+        # Modify the default configs for PPO
+        config = ray_ppo.DEFAULT_CONFIG.copy()
+        config["framework"] = "torch"
+        config["train_batch_size"] = 256
+        config["sgd_minibatch_size"] = 16
+        config["lr"] = 0.001
+        config["clip_param"] = 0.3
+        config["num_gpus"] =  1 # this may throw an error
+        config["num_workers"] = 1
+        config["env_config"] = vars(args)
+        config["env"] = environments[args.gym_env]
+        obs_dim = np.sum([args.energy_in_state, args.price_in_state])
+            
+        out_path = os.path.join(args.log_path, "bulk_data.h5")
+        callbacks = CustomCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
+        config["callbacks"] = lambda: callbacks
+        logger_creator = utils.custom_logger_creator(args.log_path)
+
+        callbacks.save()
+        print("Saved first callback")
+
+        if args.wandb:
+            wandb.save(out_path)
+
+        return ray_ppo.PPOTrainer(
+            config = config, 
+            env = environments[args.gym_env],
+            logger_creator = logger_creator
+        )
+
+    # Add more algorithms here. 
+
+def train(agent, args):
+    """
+    Purpose: Train agent in environment. 
+    """
+    library = args.library
+    algo = args.algo
+    env = args.gym_env
+    num_steps = args.num_steps
+
+    if library == "rllib":
+        print("Initializing Ray")
+        ray.init(local_mode=True)
+        print("Ray Initialized")
+
+    ## Beginning Training ##
+    print("Beginning training.")
+    to_log = ["episode_reward_mean"]
+    training_steps = 0
+    while training_steps < num_steps:
+        result = agent.train()
+        training_steps = result["timesteps_total"]
+        log = {name: result[name] for name in to_log}
+        print(log)
+
+    # callbacks.save() TODO: Implement callbacks
+        
+#
+# Call get_agent and train to recieve the agent and then train it. 
+#
+if __name__ == "__main__":
+    args = parser.parse_args()
+    print(f"Running with following options: {args}")
+
+    ray.init(local_mode=args.local_mode)
+
+    # Uploading logs to wandb
+    if args.wandb:
+        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
+        wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
+        wandb.config.update(args)
+
+    # Get Agent
+    agent = get_agent(vec_env, args, non_vec_env=None) 
+    # TODO: Implement
+    print("Agent initialied.")
+
+    # Training
+    print(f'Beginning Testing! Logs are being saved in {args.logpath}')
+    # TODO: Implement
+    train(agent=agent, num_steps=args.num_steps )
 
 
-"""
-Parse the experiment arguments and configurations.
-"""
+######################################
+#### Arguments and Configurations ####
+######################################
+
+# Add environments here to be included when configuring an agent
+environments = {
+    "socialgame": SocialGameEnvRLLib,
+}
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--library",
@@ -15,7 +114,6 @@ parser.add_argument(
     default = "rllib",
     choices = ["rllib", "tune"]
 )
-
 # Algorithm Arguments
 parser.add_argument(
     "--algo",
@@ -41,7 +139,6 @@ parser.add_argument(
     default="log_cost_regularized",
     choices=["scaled_cost_distance", "log_cost_regularized", "log_cost", "scd", "lcr", "lc", "market_solving", "profit_maximizing"],
 )
-
 # Environment Arguments
 parser.add_argument(
     "--gym_env", 
@@ -64,7 +161,6 @@ parser.add_argument(
     default="l",
     choices=["l", "t", "s"],
 )
-
 # Experiment Arguments
 parser.add_argument(
     "--exp_name",
@@ -132,8 +228,7 @@ parser.add_argument(
     type=float,
     default=3e-4,
 )
-
-# Logging
+# Logging Arguments
 parser.add_argument(
     "-w",
     "--wandb",
@@ -152,3 +247,13 @@ parser.add_argument(
     type=int,
     default=10000
 )
+# Machine Arguments
+parser.add_argument(
+    parser.add_argument(
+    "-l"
+    "--local-mode",
+    action="store_true",
+    help="Init Ray in local mode for easier debugging.")
+)
+
+
