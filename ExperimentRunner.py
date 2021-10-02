@@ -70,33 +70,6 @@ def train(agent, args):
         print(log)
 
     # callbacks.save() TODO: Implement callbacks
-        
-#
-# Call get_agent and train to recieve the agent and then train it. 
-#
-if __name__ == "__main__":
-    args = parser.parse_args()
-    print(f"Running with following options: {args}")
-
-    ray.init(local_mode=args.local_mode)
-
-    # Uploading logs to wandb
-    if args.wandb:
-        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
-        wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
-        wandb.config.update(args)
-
-    # Get Agent
-    agent = get_agent(vec_env, args, non_vec_env=None) 
-    # TODO: Implement
-    print("Agent initialied.")
-
-    # Training
-    print(f'Beginning Testing! Logs are being saved in {args.logpath}')
-    # TODO: Implement
-    train(agent=agent, num_steps=args.num_steps )
-
-
 ######################################
 #### Arguments and Configurations ####
 ######################################
@@ -255,5 +228,30 @@ parser.add_argument(
     action="store_true",
     help="Init Ray in local mode for easier debugging.")
 )
+
+#
+# Call get_agent and train to recieve the agent and then train it. 
+#
+if __name__ == "__main__":
+    args = parser.parse_args()
+    print(f"Running with following options: {args}")
+
+    ray.init(local_mode=args.local_mode)
+
+    # Uploading logs to wandb
+    if args.wandb:
+        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
+        wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
+        wandb.config.update(args)
+
+    # Get Agent
+    agent = get_agent(vec_env, args, non_vec_env=None) 
+    # TODO: Implement
+    print("Agent initialied.")
+
+    # Training
+    print(f'Beginning Testing! Logs are being saved in {args.logpath}')
+    # TODO: Implement
+    train(agent=agent, num_steps=args.num_steps )
 
 
