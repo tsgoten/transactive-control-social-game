@@ -147,7 +147,7 @@ class SocialGameEnv(gym.Env):
 
         dim = self.hours_in_day*np.sum([self.price_in_state, self.energy_in_state])
         #TODO: Normalize obs_space !
-        return spaces.Box(low=-np.inf, high=np.inf, shape=(dim,), dtype=np.float32)
+        return spaces.Box(low=-np.inf, high=np.inf, shape=(dim,), dtype=np.float64)
 
 
     def _create_action_space(self):
