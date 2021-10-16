@@ -10,7 +10,7 @@ import ray
 import ray.rllib.agents.ppo as ray_ppo
 
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
-
+from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib)
 def get_agent(args):
     """
     Purpose: Import the algorithm and policy to create an agent. 
@@ -84,6 +84,7 @@ def train(agent, args):
 # Add environments here to be included when configuring an agent
 environments = {
     "socialgame": SocialGameEnvRLLib,
+    "microgrid": MicrogridEnvRLLib
 }
 
 parser = argparse.ArgumentParser()
@@ -123,9 +124,9 @@ parser.add_argument(
 # Environment Arguments
 parser.add_argument(
     "--gym_env", 
-    help="Which Gym Environment you wihs to use",
+    help="Which Gym Environment you wish to use",
     type=str,
-    choices=["socialgame"],
+    choices=["socialgame", "microgrid"],
     default="socialgame"
 )
 parser.add_argument(
