@@ -24,7 +24,6 @@ class MicrogridEnv(gym.Env):
         energy_in_state = False,
         day_of_week = False,
         reward_function = "market_solving",
-        manual_tou_magnitude=None,
         complex_batt_pv_scenario=1,
         exp_name = None,
         two_price_state = True,
@@ -43,7 +42,6 @@ class MicrogridEnv(gym.Env):
                     Note: -1 = Random Day, 0 = Train over entire Yr, [1,365] = Day of the Year
             energy_in_state: (Boolean) denoting whether (or not) to include the previous day's energy consumption within the state
             yesterday_in_state: (Boolean) denoting whether (or not) to append yesterday's price signal to the state
-            manual_tou_magnitude: (Float>1) The relative magnitude of the TOU pricing to the regular pricing
 
         """
         super(MicrogridEnv, self).__init__()
@@ -63,7 +61,6 @@ class MicrogridEnv(gym.Env):
         self.energy_in_state = energy_in_state
         self.two_price_state = two_price_state
         self.reward_function = reward_function
-        self.manual_tou_magnitude = manual_tou_magnitude
         self.complex_batt_pv_scenario = complex_batt_pv_scenario
 
         self.smirl_weight = smirl_weight
@@ -647,7 +644,6 @@ class MicrogridEnvRLLib(MicrogridEnv):
             one_day = env_config["one_day"],
             energy_in_state = env_config["energy_in_state"],
             reward_function = env_config["reward_function"],
-            manual_tou_magnitude=env_config["manual_tou_magnitude"],
             smirl_weight=env_config["smirl_weight"], 
             complex_batt_pv_scenario=1, 
             two_price_state = False,
@@ -900,7 +896,6 @@ class MultiAgentMicroGridEnv(MultiAgentEnv):
         energy_in_state = False,
         day_of_week = False,
         reward_function = "market_solving",
-        manual_tou_magnitude=None,
         complex_batt_pv_scenario=1,
         exp_name = None,
         two_price_state = True,
@@ -919,6 +914,5 @@ class MultiAgentMicroGridEnv(MultiAgentEnv):
                     Note: -1 = Random Day, 0 = Train over entire Yr, [1,365] = Day of the Year
             energy_in_state: (Boolean) denoting whether (or not) to include the previous day's energy consumption within the state
             yesterday_in_state: (Boolean) denoting whether (or not) to append yesterday's price signal to the state
-            manual_tou_magnitude: (Float>1) The relative magnitude of the TOU pricing to the regular pricing
 
         """
