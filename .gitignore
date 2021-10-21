@@ -6,7 +6,9 @@ wandb/
 # Development
 .vscode/
 .vscode-server/
-
+.local/
+.npm/
+.cache/
 __pycache__
 *.egg-info
 *.csv
