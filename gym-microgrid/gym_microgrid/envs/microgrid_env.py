@@ -240,7 +240,6 @@ class MicrogridEnv(gym.Env):
             name = building_names[i]
             prosumer = Prosumer(name, np.squeeze(df[[name]].values), .001*np.squeeze(df[['PV (W)']].values), battery_num = battery_nums[i], pv_size = pvsizes[i])
             prosumer_dict[name] = prosumer
-        import pdb; pdb.set_trace()
         return prosumer_dict
 
     def _get_generation(self):
@@ -592,7 +591,6 @@ class MicrogridEnv(gym.Env):
     def close(self):
         pass
 
-
     def check_valid_init_inputs(self, action_space_string: str, number_of_participants = 10,
                 one_day = False, energy_in_state = False):
 
@@ -645,7 +643,7 @@ class MicrogridEnvRLLib(MicrogridEnv):
             energy_in_state = env_config["energy_in_state"],
             reward_function = env_config["reward_function"],
             smirl_weight=env_config["smirl_weight"], 
-            complex_batt_pv_scenario=1, 
+            complex_batt_pv_scenario=env_config.get("complex_batt_pv_scenario", 1), # set to 1 if not specified in config
             two_price_state = False,
         )
         print("Initialized RLLib child class for MicrogridEnv.")
@@ -888,18 +886,9 @@ class CounterfactualMicrogridEnvRLLib(MicrogridEnvRLLib, MultiAgentEnv):
         return observation, reward, done, info
 
 
-class MultiAgentMicroGridEnv(MultiAgentEnv):
+class MultiAgentMicroGridEnvRLLib(gym.Env):
     def __init__(self,
-        action_space_string = "continuous",
-        number_of_participants = 10,
-        one_day = 0,
-        energy_in_state = False,
-        day_of_week = False,
-        reward_function = "market_solving",
-        complex_batt_pv_scenario=1,
-        exp_name = None,
-        two_price_state = True,
-        smirl_weight=None
+        env_config
         ):
         """
         MicrogridEnv for an agent determining incentives in a social game.
@@ -914,5 +903,34 @@ class MultiAgentMicroGridEnv(MultiAgentEnv):
                     Note: -1 = Random Day, 0 = Train over entire Yr, [1,365] = Day of the Year
             energy_in_state: (Boolean) denoting whether (or not) to include the previous day's energy consumption within the state
             yesterday_in_state: (Boolean) denoting whether (or not) to append yesterday's price signal to the state
-
         """
+        self.check_valid_init_inputs(env_config["scenarios"], env_config["num_inner_steps"])
+        self.complex_batt_pv_scenarios = env_config["scenarios"] # TODO: Add this to ExperimentRunner
+        self.num_inner_steps = env_config["num_inner_steps"] # TODO: Add this to ExperimentRunner
+        
+        self.configs = [deepcopy(env_config) for _ in complex_batt_pv_scenarios]
+        for i, config in enumerate(self.configs):
+            config["complex_batt_pv_scenario"] = self.complex_batt_pv_scenarios[i]
+        self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
+        self.curr_env_id = 0
+    
+    def step(self, action):
+        observation, reward, done, info = self.envs[self.curr_env_id].step(action)
+        observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
+        return observation, reward, done, info
+
+    def _get_observation(self):
+        return self.envs[self.curr_env_id]._get_observation()
+
+    def reset(self):
+        """ Resets the environment on the current day """
+        return self._get_observation()
+
+    def render(self, mode='human'):
+        pass
+
+    def close(self):
+        pass
+
+    def check_valid_init_inputs(complex_batt_pv_scenarios):
+        assert len(complex_batt_pv_scenarios) > 0, "At least one scenario must be provided"

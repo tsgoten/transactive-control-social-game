@@ -56,6 +56,7 @@ def train(agent, args):
     """
     Purpose: Train agent in environment. 
     """
+    breakpoint()
     library = args.library
     algo = args.algo
     env = args.gym_env
@@ -75,6 +76,16 @@ def train(agent, args):
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
+
+    #list of different local agents
+    #for each local agent, we call .train()
+    #at the end of .train, that local agent should
+    #have second order gradient updates ready for the hypernetwork
+    #We should access those from out here and use them to update the hypernetwork
+    #And then set the new local agent model weights
+
+    #TODO: create a custom RLLib Policy and Trainer class that will do the optimization
+    # on the local agent and compute second order gradient updates at the end of .train
 
     # callbacks.save() TODO: Implement callbacks
 ######################################
