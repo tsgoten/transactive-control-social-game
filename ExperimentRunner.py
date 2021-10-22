@@ -261,6 +261,12 @@ parser.add_argument(
     help="Init Ray in local mode for easier debugging.",
     action="store_true"
 )
+parser.add_argument(
+    "--num_inner_steps",
+    help="Number of local model training steps",
+    type= int,
+    default=1
+)
 
 #
 # Call get_agent and train to recieve the agent and then train it. 

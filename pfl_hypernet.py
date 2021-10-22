@@ -18,7 +18,7 @@ class PFL_Hypernet(nn.Module):
         
         self.embedding = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
 
-        self.layers = []
+        self.layers = [self.embedding]
         if num_layers == 1:
             self.layers.append(nn.Linear(embedding_dim, self.out_dim))
         else:
@@ -28,6 +28,8 @@ class PFL_Hypernet(nn.Module):
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
             self.layers.append(nn.ReLu())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
+
+        self.net = nn.Sequential(*self.layers)
         
 
         
@@ -42,4 +44,5 @@ class PFL_Hypernet(nn.Module):
         assert isinstance(num_hidden, int) == True, "num_hidden must be an int"
         assert lr > 0, "lr <= 0"
         
-    # def forward(self, ):
+    def forward(self, x):
+        return self.net

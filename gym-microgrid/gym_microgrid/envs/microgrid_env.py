@@ -886,7 +886,7 @@ class CounterfactualMicrogridEnvRLLib(MicrogridEnvRLLib, MultiAgentEnv):
         return observation, reward, done, info
 
 
-class MultiAgentMicroGridEnvRLLib(gym.Env):
+class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
     def __init__(self,
         env_config
         ):
@@ -912,15 +912,23 @@ class MultiAgentMicroGridEnvRLLib(gym.Env):
         for i, config in enumerate(self.configs):
             config["complex_batt_pv_scenario"] = self.complex_batt_pv_scenarios[i]
         self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
-        self.curr_env_id = 0
     
-    def step(self, action):
-        observation, reward, done, info = self.envs[self.curr_env_id].step(action)
-        observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
+    def step(self, action_dict):
+        obs_dict = {}
+        rew_dict = {}
+        done_dict = {}
+        info_dict = {}
+        for i, env in enumerate(self.envs):
+            observation, reward, done, info = env.step(action[i])
+            obs_dict[i] = observation
+            rew_dict[i] = reward
+            done_dict[i] = done
+            info_dict[i] = info
+            #observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
         return observation, reward, done, info
 
     def _get_observation(self):
-        return self.envs[self.curr_env_id]._get_observation()
+        return {i: self.envs[i]._get_observation() for i in range(len(self.envs))}
 
     def reset(self):
         """ Resets the environment on the current day """
