@@ -1,9 +1,3 @@
-"""Example of using RLlib's debug callbacks.
-
-Here we use callbacks to track the average CartPole pole angle magnitude as a
-custom metric.
-"""
-
 from typing import Dict
 import numpy as np
 import pandas as pd
@@ -137,7 +131,6 @@ class CustomCallbacks(DefaultCallbacks):
             self.steps_since_save += 1
             if self.steps_since_save == self.save_interval:
                 self.save()
-
         return
 
     def on_episode_end(self, *, worker: RolloutWorker, base_env: BaseEnv,
