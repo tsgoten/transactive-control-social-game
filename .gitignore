@@ -12,3 +12,9 @@ wandb/
 __pycache__
 *.egg-info
 *.csv
+.ssh/
+.gnupg/
+.dvc/
+.bash_history
+.netrc
+.python_history
