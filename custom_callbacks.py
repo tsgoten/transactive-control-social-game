@@ -57,11 +57,10 @@ class CustomCallbacks(DefaultCallbacks):
                         episode: MultiAgentEpisode, env_index: int, **kwargs):
 
         socialgame_env = base_env.get_unwrapped()[0]
+        import pdb; pdb.set_trace()
 
         step_i = socialgame_env.total_iter
         self.log_vals["step"].append(step_i)
-
-        
 
         # TODO: Implement logging for planning_env 
         if hasattr(socialgame_env, "planning_steps") and socialgame_env.planning_steps > 0: 

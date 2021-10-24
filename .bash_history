@@ -29,3 +29,4 @@ python ExperimentRunner.py --gym_env=microgrid
 python ExperimentRunner.py --gym_env=microgrid 
 python ExperimentRunner.py --gym_env=microgrid 
 exit
+exit

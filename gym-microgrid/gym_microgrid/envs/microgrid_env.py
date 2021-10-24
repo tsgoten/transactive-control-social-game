@@ -9,6 +9,7 @@ from gym_microgrid.envs.utils import price_signal
 from gym_microgrid.envs.agents import *
 from gym_microgrid.envs.reward import Reward
 from gym_socialgame.envs.buffers import GaussianBuffer
+from copy import deepcopy
 
 import IPython
 
@@ -241,6 +242,9 @@ class MicrogridEnv(gym.Env):
             prosumer = Prosumer(name, np.squeeze(df[[name]].values), .001*np.squeeze(df[['PV (W)']].values), battery_num = battery_nums[i], pv_size = pvsizes[i])
             prosumer_dict[name] = prosumer
         return prosumer_dict
+
+    def store_sample_user(self, energy_consumptions):
+        pass
 
     def _get_generation(self):
         """
@@ -534,37 +538,7 @@ class MicrogridEnv(gym.Env):
         info = {}
         return observation, reward, done, info
 
-    def store_sample_user(self, energy_consumptions):
-        """ Stores the sample user reactions per day. 
-        
-        Args:
-            energy_consumptions: output from simulate_humans
-        """
-
-        self.sample_user_response["sample_user"] = (
-            "scenario_" + 
-            str(self.complex_batt_pv_scenario) + 
-            "_user_" + 
-            str(self.sample_user))
-
-
-        self.sample_user_response["pv_size"] = self.pv_sizes[self.sample_user]
-        self.sample_user_response["battery_size"] = self.battery_sizes[self.sample_user]
-
-        # get the building
-
-        prosumer = list(self.prosumer_dict.keys())[self.sample_user]
-
-        for key, val in energy_consumptions.items():
-            for i, k in enumerate(val[prosumer].flatten()):
-                self.sample_user_response[key]["prosumer_response_hour_" + str(i)] = k
-
-        if not self.iteration % 10:
-            self.sample_user = np.random.choice(10, 1)[0]
-
-        self.energy_consumption_length = len(self.sample_user_response["real"])
-
-        return
+    
 
     def _get_observation(self):
     
@@ -578,7 +552,7 @@ class MicrogridEnv(gym.Env):
 
         return np.concatenate(
             (prev_energy, generation_tomorrow, buyprice_grid_tomorrow)
-            )
+            ).astype(np.float32)
         
 
     def reset(self):
@@ -885,6 +859,38 @@ class CounterfactualMicrogridEnvRLLib(MicrogridEnvRLLib, MultiAgentEnv):
         info = {"real":{}, "shadow":{}}
         return observation, reward, done, info
 
+    def store_sample_user(self, energy_consumptions):
+        """ Stores the sample user reactions per day. 
+        
+        Args:
+            energy_consumptions: output from simulate_humans
+        """
+
+        self.sample_user_response["sample_user"] = (
+            "scenario_" + 
+            str(self.complex_batt_pv_scenario) + 
+            "_user_" + 
+            str(self.sample_user))
+
+
+        self.sample_user_response["pv_size"] = self.pv_sizes[self.sample_user]
+        self.sample_user_response["battery_size"] = self.battery_sizes[self.sample_user]
+
+        # get the building
+
+        prosumer = list(self.prosumer_dict.keys())[self.sample_user]
+
+        for key, val in energy_consumptions.items():
+            for i, k in enumerate(val[prosumer].flatten()):
+                self.sample_user_response[key]["prosumer_response_hour_" + str(i)] = k
+
+        if not self.iteration % 10:
+            self.sample_user = np.random.choice(10, 1)[0]
+
+        self.energy_consumption_length = len(self.sample_user_response["real"])
+
+        return
+
 
 class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
     def __init__(self,
@@ -905,34 +911,56 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
             yesterday_in_state: (Boolean) denoting whether (or not) to append yesterday's price signal to the state
         """
         self.check_valid_init_inputs(env_config["scenarios"], env_config["num_inner_steps"])
-        self.complex_batt_pv_scenarios = env_config["scenarios"] # TODO: Add this to ExperimentRunner
-        self.num_inner_steps = env_config["num_inner_steps"] # TODO: Add this to ExperimentRunner
+        self.complex_batt_pv_scenarios = env_config["scenarios"]
+        self.num_inner_steps = env_config["num_inner_steps"] 
+        self.total_iter = 0
         
-        self.configs = [deepcopy(env_config) for _ in complex_batt_pv_scenarios]
+        self.configs = [deepcopy(env_config) for _ in self.complex_batt_pv_scenarios]
         for i, config in enumerate(self.configs):
-            config["complex_batt_pv_scenario"] = self.complex_batt_pv_scenarios[i]
+            config["complex_batt_pv_scenario"] = int(self.complex_batt_pv_scenarios[i])
         self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
-    
+        #WARNING: THESE WILL NOT WORK IF NOT ALL ENVS HAVE THE SAME OBS/ACTION SPACE
+        self.observation_space = self.envs[0].observation_space
+        self.action_space = self.envs[0].action_space
+
+    @property
+    def last_energy_reward(self):
+        return {i: env.last_energy_reward for env in self.envs}
+
+    @property
+    def last_energy_cost(self):
+        return {i: env.last_energy_cost for env in self.envs}
+
+    @property
+    def use_smirl(self):
+        return {i: env.use_smirl for env in self.envs}
+
     def step(self, action_dict):
         obs_dict = {}
         rew_dict = {}
         done_dict = {}
         info_dict = {}
-        for i, env in enumerate(self.envs):
-            observation, reward, done, info = env.step(action[i])
+        all_ = True
+        self.total_iter += 1
+        for i, action in action_dict.items():
+            observation, reward, done, info = self.envs[i].step(action)
             obs_dict[i] = observation
             rew_dict[i] = reward
             done_dict[i] = done
             info_dict[i] = info
+            if done:
+                all_ = False
             #observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
-        return observation, reward, done, info
+        info_dict["__all__"] = all_
+        return obs_dict, rew_dict, info_dict, done_dict
 
     def _get_observation(self):
         return {i: self.envs[i]._get_observation() for i in range(len(self.envs))}
 
     def reset(self):
         """ Resets the environment on the current day """
-        return self._get_observation()
+        ret = self._get_observation()
+        return ret
 
     def render(self, mode='human'):
         pass
@@ -940,5 +968,6 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
     def close(self):
         pass
 
-    def check_valid_init_inputs(complex_batt_pv_scenarios):
+    def check_valid_init_inputs(self, complex_batt_pv_scenarios, num_inner_steps):
+        assert num_inner_steps > 0, "Need a positive num_inner_steps"
         assert len(complex_batt_pv_scenarios) > 0, "At least one scenario must be provided"
