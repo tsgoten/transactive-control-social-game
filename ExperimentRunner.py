@@ -10,17 +10,31 @@ import ray
 import ray.rllib.agents.ppo as ray_ppo
 
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
-
+from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib, MultiAgentMicroGridEnvRLLib)
 def get_agent(args):
     """
     Purpose: Import the algorithm and policy to create an agent. 
     Returns: Agent
     Exceptions: Malformed args to create an agent. 
     """
+    ### Setup for MultiAgent ###
+    #Create a dummy environment to get action and observation space for our settings
+    dummy_env = environments[args.gym_env](vars(args))
+    obs_space = dummy_env.observation_space
+    act_space = dummy_env.action_space
+
+    config = {}
+    if args.gym_env == "microgrid_multi":
+        config["multiagent"] = {
+            "policies": {i: (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
+            "policy_mapping_fn": lambda agent_id: agent_id
+        }
     #### Algorithm: PPO ####
     if args.algo == "ppo":
         # Modify the default configs for PPO
-        config = ray_ppo.DEFAULT_CONFIG.copy()
+        default_config = ray_ppo.DEFAULT_CONFIG.copy()
+        #merge config with default config (with default overwriting in case of clashes)
+        config = {**config, **default_config}
         config["framework"] = "torch"
         config["train_batch_size"] = 256
         config["sgd_minibatch_size"] = 16
@@ -52,6 +66,9 @@ def get_agent(args):
 
     # Add more algorithms here. 
 
+def pfl_hnet_update(agent, result, args):
+    breakpoint()
+
 def train(agent, args):
     """
     Purpose: Train agent in environment. 
@@ -72,9 +89,21 @@ def train(agent, args):
     training_steps = 0
     while training_steps < num_steps:
         result = agent.train()
+        if args.gym_env == "microgrid_multi":
+            result = pfl_hnet_update(agent, result, args)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
+
+    #list of different local agents
+    #for each local agent, we call .train()
+    #at the end of .train, that local agent should
+    #have second order gradient updates ready for the hypernetwork
+    #We should access those from out here and use them to update the hypernetwork
+    #And then set the new local agent model weights
+
+    #TODO: create a custom RLLib Policy and Trainer class that will do the optimization
+    # on the local agent and compute second order gradient updates at the end of .train
 
     # callbacks.save() TODO: Implement callbacks
 ######################################
@@ -84,6 +113,8 @@ def train(agent, args):
 # Add environments here to be included when configuring an agent
 environments = {
     "socialgame": SocialGameEnvRLLib,
+    "microgrid": MicrogridEnvRLLib,
+    "microgrid_multi": MultiAgentMicroGridEnvRLLib
 }
 
 parser = argparse.ArgumentParser()
@@ -123,9 +154,9 @@ parser.add_argument(
 # Environment Arguments
 parser.add_argument(
     "--gym_env", 
-    help="Which Gym Environment you wihs to use",
+    help="Which Gym Environment you wish to use",
     type=str,
-    choices=["socialgame"],
+    choices=["socialgame", "microgrid", "microgrid_multi"],
     default="socialgame"
 )
 parser.add_argument(
@@ -249,7 +280,18 @@ parser.add_argument(
     help="Init Ray in local mode for easier debugging.",
     action="store_true"
 )
-
+parser.add_argument(
+    "--num_inner_steps",
+    help="Number of local model training steps",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--scenarios",
+    nargs='+',
+    help="List of complex_batt_pv_scenarios to have separate agents for",
+    default=[]
+)
 #
 # Call get_agent and train to recieve the agent and then train it. 
 #
