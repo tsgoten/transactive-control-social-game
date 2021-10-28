@@ -3,8 +3,9 @@ import gym
 import numpy as np
 import os
 import wandb
+import math
 import utils
-from custom_callbacks import CustomCallbacks
+from custom_callbacks import CustomCallbacks, CustomCallbacksWrapper
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
@@ -26,15 +27,15 @@ def get_agent(args):
     config = {}
     if args.gym_env == "microgrid_multi":
         config["multiagent"] = {
-            "policies": {i: (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
+            "policies": {str(i): (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
             "policy_mapping_fn": lambda agent_id: agent_id
         }
     #### Algorithm: PPO ####
     if args.algo == "ppo":
         # Modify the default configs for PPO
         default_config = ray_ppo.DEFAULT_CONFIG.copy()
-        #merge config with default config (with default overwriting in case of clashes)
-        config = {**config, **default_config}
+        #merge config with default config (with ours overwriting in case of clashes)
+        config = {**default_config, **config}
         config["framework"] = "torch"
         config["train_batch_size"] = 256
         config["sgd_minibatch_size"] = 16
@@ -45,10 +46,10 @@ def get_agent(args):
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
         # obs_dim = np.sum([args.energy_in_state, args.price_in_state])
-        obs_dim = 10
+        obs_dim = math.prod(obs_space.shape)
             
         out_path = os.path.join(args.log_path, "bulk_data.h5")
-        callbacks = CustomCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
+        callbacks = CustomCallbacksWrapper(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
         config["callbacks"] = lambda: callbacks
         logger_creator = utils.custom_logger_creator(args.log_path)
 
@@ -66,8 +67,32 @@ def get_agent(args):
 
     # Add more algorithms here. 
 
-def pfl_hnet_update(agent, result, args):
-    breakpoint()
+def pfl_hnet_update(agent, result, args, old_weights):
+    curr_weights = agent.get_weights()
+    # set gradients to 0 to start w
+    hnet_optimizer.zero_grad()
+    num_agents = len(curr_weights)
+    for agent_id in curr_weights.keys():
+        # calculating delta theta
+        delta_theta = OrderedDict({k: old_weights[agent_id][k] - curr_weights[agent_id][k] for k in weights.keys()})
+
+        # calculating phi gradient
+        hnet_grads = torch.autograd.grad(
+            list(old_weights[agent_id].values()), hnet.parameters(), grad_outputs=list(delta_theta.values())
+        )
+        # update hnet weights
+        for p, g in zip(hnet.parameters(), hnet_grads):
+            # normalize so we end up with a grad that is the mean of all the updates from each agent
+            p.grad += g / num_agents 
+    torch.nn.utils.clip_grad_norm_(hnet.parameters(), 50)
+    hnet_optimizer.step()
+    new_weight_dict = {}
+    for agent_id in curr_weights.keys():
+        new_weights = hnet(agent_id)
+        new_weight_dict(agent_id) = new_weights
+    agent.set_weights(new_weight_dict)
+    return result
+    
 
 def train(agent, args):
     """
@@ -291,6 +316,31 @@ parser.add_argument(
     nargs='+',
     help="List of complex_batt_pv_scenarios to have separate agents for",
     default=[]
+)
+# Hypernetwork parameters
+parser.add_argument(
+    "--hnet_embedding_dim",
+    help="Size of the embedding",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_num_layers",
+    help="Number of linear layers",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_num_hidden",
+    help="Size of the hidden layers",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_out_params_path",
+    help="Path to a file containing a dict specifying the size of the output weights",
+    type= str,
+    default="./ppo_param_dict.txt"
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 
