@@ -12,3 +12,5 @@ wandb/
 __pycache__
 *.egg-info
 *.csv
+
+.dvc

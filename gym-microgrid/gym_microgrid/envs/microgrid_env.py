@@ -11,8 +11,6 @@ from gym_microgrid.envs.reward import Reward
 from gym_socialgame.envs.buffers import GaussianBuffer
 from copy import deepcopy
 
-import IPython
-
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 class MicrogridEnv(gym.Env):
