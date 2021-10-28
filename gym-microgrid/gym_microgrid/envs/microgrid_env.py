@@ -11,8 +11,6 @@ from gym_microgrid.envs.reward import Reward
 from gym_socialgame.envs.buffers import GaussianBuffer
 from copy import deepcopy
 
-import IPython
-
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 class MicrogridEnv(gym.Env):
@@ -234,8 +232,7 @@ class MicrogridEnv(gym.Env):
         self.battery_sizes = battery_nums
 
         # Get energy from building_data.csv file,  each office building has readings in kWh. Interpolate to fill missing values
-        df = pd.read_csv(
-            '~/gym-microgrid/gym_microgrid/envs/building_data.csv').interpolate().fillna(0)
+        df = pd.read_csv('./gym-microgrid/gym_microgrid/envs/building_data.csv').interpolate().fillna(0)
         building_names = df.columns[5:] # Skip first few columns 
         for i in range(len(building_names)):
             name = building_names[i]
@@ -260,7 +257,7 @@ class MicrogridEnv(gym.Env):
 
         # Read renewable generation from CSV file. Index starts at 5 am on Jan 1, make appropriate adjustments. For year 2012: it is a leap year
         # generation = pd.read_csv('/Users/utkarshapets/Documents/Research/Optimisation attempts/building_data.csv')[['PV (W)']]
-        generation = np.squeeze(pd.read_csv('/home/tc/gym-microgrid/gym_microgrid/envs/building_data.csv')[['PV (W)']].values)
+        generation = np.squeeze(pd.read_csv('./gym-microgrid/gym_microgrid/envs/building_data.csv')[['PV (W)']].values)
         for day in range(0, 365):
             yearlonggeneration.append(
                 generation[day*self.day_length+19 : day*self.day_length+19+24]
@@ -286,7 +283,7 @@ class MicrogridEnv(gym.Env):
 
         # Read PG&E price from CSV file. Index starts at 5 am on Jan 1, make appropriate adjustments. For year 2012: it is a leap year
         # price = pd.read_csv('/Users/utkarshapets/Documents/Research/Optimisation attempts/building_data.csv')[['Price( $ per kWh)']]
-        price = np.squeeze(pd.read_csv('/home/tc/gym-microgrid/gym_microgrid/envs/building_data.csv')[['Price( $ per kWh)']].values)
+        price = np.squeeze(pd.read_csv('gym-microgrid/gym_microgrid/envs/building_data.csv')[['Price( $ per kWh)']].values)
 
         for day in range(0, 365):
             buyprice = price[day*self.day_length+19 : day*self.day_length+19+24]
