@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr, device):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
         self.lr = lr
         self.n_nodes = n_nodes
         self.embedding_dim = embedding_dim
+        self.device = device
 
         self.out_dim = self.calculate_out_dim(out_params_path)
 
@@ -26,7 +27,7 @@ class PFL_Hypernet(nn.Module):
             self.layers.append(nn.ReLu())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
 
-        self.net = nn.Sequential(*self.layers)
+        self.net = nn.Sequential(*self.layers).to(device)
         
     def calculate_out_dim(self, out_params_path):
         f = open(out_params_path, "r")
@@ -40,7 +41,7 @@ class PFL_Hypernet(nn.Module):
             dim += product
         return product
         
-    def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, out_dim, lr):
+    def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, lr):
         assert n_nodes > 0, "n_nodes <= 0"
         assert isinstance(n_nodes, int) == True, "n_nodes must be an int"
         assert embedding_dim > 0, "embedding_dim <= 0"
@@ -52,4 +53,4 @@ class PFL_Hypernet(nn.Module):
         assert lr > 0, "lr <= 0"
         
     def forward(self, x):
-        return self.net(x)
+        return self.net(torch.tensor(x).to(self.device))

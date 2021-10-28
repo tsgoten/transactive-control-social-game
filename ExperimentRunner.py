@@ -9,10 +9,15 @@ from custom_callbacks import CustomCallbacks, CustomCallbacksWrapper
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
+from pfl_hypernet import PFL_Hypernet
 
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
 from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib, MultiAgentMicroGridEnvRLLib)
+import torch
+hnet = None
+device = "cuda" if torch.cuda.is_available() else "cpu"
 def get_agent(args):
+    global hnet
     """
     Purpose: Import the algorithm and policy to create an agent. 
     Returns: Agent
@@ -26,6 +31,14 @@ def get_agent(args):
 
     config = {}
     if args.gym_env == "microgrid_multi":
+        hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
+                    embedding_dim = args.hnet_embedding_dim, 
+                    num_layers = args.hnet_num_layers,
+                    num_hidden = args.hnet_num_hidden,
+                    out_params_path = args.hnet_out_params_path,
+                    lr = args.hnet_lr,
+                    device = device)
+
         config["multiagent"] = {
             "policies": {str(i): (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
             "policy_mapping_fn": lambda agent_id: agent_id
@@ -88,10 +101,11 @@ def pfl_hnet_update(agent, result, args, old_weights):
     hnet_optimizer.step()
     new_weight_dict = {}
     for agent_id in curr_weights.keys():
-        new_weights = hnet(agent_id)
-        new_weight_dict(agent_id) = new_weights
+        new_weights = hnet(int(agent_id))
+        new_weight_dict[agent_id] = new_weights
     agent.set_weights(new_weight_dict)
-    return result
+    return result, new_weight_dict
+
     
 
 def train(agent, args):
@@ -112,10 +126,16 @@ def train(agent, args):
     print("Beginning training.")
     to_log = ["episode_reward_mean"]
     training_steps = 0
+    if args.gym_env == "microgrid_multi":
+        weights = {}
+        for agent_id in range(len(args.scenarios)):
+            weights[str(agent_id)] = hnet(int(agent_id))
+        agent.set_weights(weights)
+            
     while training_steps < num_steps:
         result = agent.train()
         if args.gym_env == "microgrid_multi":
-            result = pfl_hnet_update(agent, result, args)
+            result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
@@ -341,6 +361,12 @@ parser.add_argument(
     help="Path to a file containing a dict specifying the size of the output weights",
     type= str,
     default="./ppo_param_dict.txt"
+)
+parser.add_argument(
+    "--hnet_lr",
+    help="Hnet learning rate",
+    type= float,
+    default=3e-4
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 
