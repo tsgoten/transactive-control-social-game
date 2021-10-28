@@ -9,12 +9,9 @@ class PFL_Hypernet(nn.Module):
         self.n_nodes = n_nodes
         self.embedding_dim = embedding_dim
 
-        f = open(out_params_path, "r")
-        param_string = f.read()
-        self.param_shapes = eval(param_string)
-        self.out_dim = 0
+        self.out_dim = self.calculate_out_dim(out_params_path)
 
-        validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
+        self.validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
         
         self.embedding = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
 
@@ -31,9 +28,19 @@ class PFL_Hypernet(nn.Module):
 
         self.net = nn.Sequential(*self.layers)
         
-
+    def calculate_out_dim(self, out_params_path):
+        f = open(out_params_path, "r")
+        param_string = f.read()
+        param_shapes = eval(param_string)
+        dim = 0
+        for _, v in param_shapes.items():
+            product = 1
+            for i in range(len(v)):
+                product *= v[i]
+            dim += product
+        return product
         
-    def validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, out_dim, lr):
+    def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, out_dim, lr):
         assert n_nodes > 0, "n_nodes <= 0"
         assert isinstance(n_nodes, int) == True, "n_nodes must be an int"
         assert embedding_dim > 0, "embedding_dim <= 0"
@@ -45,4 +52,4 @@ class PFL_Hypernet(nn.Module):
         assert lr > 0, "lr <= 0"
         
     def forward(self, x):
-        return self.net
+        return self.net(x)
