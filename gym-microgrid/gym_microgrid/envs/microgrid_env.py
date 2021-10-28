@@ -925,15 +925,19 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
 
     @property
     def last_energy_reward(self):
-        return {i: env.last_energy_reward for env in self.envs}
+        return {str(i): env.last_energy_reward for i, env in enumerate(self.envs)}
 
     @property
     def last_energy_cost(self):
-        return {i: env.last_energy_cost for env in self.envs}
+        return {str(i): env.last_energy_cost for i, env in enumerate(self.envs)}
+        
+    @property
+    def last_energy_cost(self):
+        return {str(i): env.last_smirl_reward for i, env in enumerate(self.envs)}
 
     @property
     def use_smirl(self):
-        return {i: env.use_smirl for env in self.envs}
+        return {str(i): env.use_smirl for i, env in enumerate(self.envs)}
 
     def step(self, action_dict):
         obs_dict = {}
@@ -943,7 +947,7 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
         all_ = True
         self.total_iter += 1
         for i, action in action_dict.items():
-            observation, reward, done, info = self.envs[i].step(action)
+            observation, reward, done, info = self.envs[int(i)].step(action)
             obs_dict[i] = observation
             rew_dict[i] = reward
             done_dict[i] = done
@@ -955,7 +959,7 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
         return obs_dict, rew_dict, info_dict, done_dict
 
     def _get_observation(self):
-        return {i: self.envs[i]._get_observation() for i in range(len(self.envs))}
+        return {str(i): self.envs[i]._get_observation() for i in range(len(self.envs))}
 
     def reset(self):
         """ Resets the environment on the current day """

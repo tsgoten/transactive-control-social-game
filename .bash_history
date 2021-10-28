@@ -30,3 +30,27 @@ python ExperimentRunner.py --gym_env=microgrid
 python ExperimentRunner.py --gym_env=microgrid 
 exit
 exit
+python ExperimentRunner.py --gym_env=microgrid 
+python ExperimentRunner.py --gym_env=microgrid 
+git add -A
+git commit -m "Added last_energy_reward and cost properties to multiagent microgrid"
+git push
+python ExperimentRunner.py --gym_env=microgrid_multi
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+python ExperimentRunner.py --gym_env=microgrid_multi -w --scenarios 1 2
+exit
+nvidia-smi
+nvidia-smi
+exit

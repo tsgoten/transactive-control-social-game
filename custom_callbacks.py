@@ -18,7 +18,7 @@ from ray.rllib.policy.sample_batch import SampleBatch
 
 class CustomCallbacks(DefaultCallbacks):
 
-    def __init__(self, log_path, save_interval, obs_dim=10):
+    def __init__(self, log_path, save_interval, obs_dim=10, env_id=0, unwrap_env=True):
         super().__init__()
         self.log_path=log_path
         self.save_interval=save_interval
@@ -26,12 +26,14 @@ class CustomCallbacks(DefaultCallbacks):
         for i in range(obs_dim):
             self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
+        self.env_id = env_id
         self.log_vals = {k: [] for k in self.cols}
+        self.unwrap_env = unwrap_env
         print("initialized Custom Callbacks")
 
     def save(self):
         log_df=pd.DataFrame(data=self.log_vals)
-        log_df.to_hdf(self.log_path, "metrics", append=True, format="table")
+        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
 
@@ -42,7 +44,11 @@ class CustomCallbacks(DefaultCallbacks):
                          policies: Dict[str, Policy],
                          episode: MultiAgentEpisode, env_index: int, **kwargs):
 
-        socialgame_env = base_env.get_unwrapped()[0]
+        if self.unwrap_env:
+            socialgame_env = base_env.get_unwrapped()[0]
+        else:
+            socialgame_env = base_env
+        
         if socialgame_env.use_smirl:
             episode.user_data["smirl_reward"] = []
             episode.hist_data["smirl_reward"] = []
@@ -55,10 +61,10 @@ class CustomCallbacks(DefaultCallbacks):
 
     def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
                         episode: MultiAgentEpisode, env_index: int, **kwargs):
-
-        socialgame_env = base_env.get_unwrapped()[0]
-        import pdb; pdb.set_trace()
-
+        if self.unwrap_env:
+            socialgame_env = base_env.get_unwrapped()[0]
+        else:
+            socialgame_env = base_env
         step_i = socialgame_env.total_iter
         self.log_vals["step"].append(step_i)
 
@@ -142,7 +148,10 @@ class CustomCallbacks(DefaultCallbacks):
     def on_episode_end(self, *, worker: RolloutWorker, base_env: BaseEnv,
                        policies: Dict[str, Policy], episode: MultiAgentEpisode,
                        env_index: int, **kwargs):
-        socialgame_env = base_env.get_unwrapped()[0]
+        if self.unwrap_env:
+            socialgame_env = base_env.get_unwrapped()[0]
+        else:
+            socialgame_env = base_env
         episode.custom_metrics["energy_reward"] = np.mean(episode.user_data["energy_reward"])
         episode.custom_metrics["energy_cost"] = np.mean(episode.user_data["energy_cost"])
         if socialgame_env.use_smirl:
@@ -170,3 +179,37 @@ class CustomCallbacks(DefaultCallbacks):
         episode.custom_metrics["num_batches"] += 1
         return
 
+class CustomCallbacksWrapper(CustomCallbacks):
+    def __init__(self, log_path, save_interval, obs_dim=10):
+        super(DefaultCallbacks).__init__()
+        self.log_path = log_path
+        self.save_interval = save_interval
+        self.obs_dim = obs_dim
+        self.loggers = {}
+
+    def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
+                         policies: Dict[str, Policy],
+                         episode: MultiAgentEpisode, env_index: int, **kwargs):
+        socialgame_env = base_env.get_unwrapped()[0]
+        for env_idx, env in enumerate(socialgame_env.envs):
+            if env_idx not in self.loggers:
+                self.loggers[env_idx] = CustomCallbacks(self.log_path, self.save_interval, self.obs_dim, env_idx, unwrap_env=False)
+                self.loggers[env_idx].save()
+            self.loggers[env_idx].on_episode_start(worker = worker, base_env = env, policies=policies, episode = episode, env_index = env_idx, **kwargs)
+    
+    def on_episode_end(self, *, worker: RolloutWorker, base_env: BaseEnv,
+                       policies: Dict[str, Policy], episode: MultiAgentEpisode,
+                       env_index: int, **kwargs):
+        socialgame_env = base_env.get_unwrapped()[0]
+        for env_idx, env in enumerate(socialgame_env.envs):
+            self.loggers[env_idx].on_episode_end(worker=worker, base_env=env, policies=policies, episode=episode, env_index=env_idx, **kwargs)
+
+    def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
+                        episode: MultiAgentEpisode, env_index: int, **kwargs):
+        socialgame_env = base_env.get_unwrapped()[0]
+        for env_idx, env in enumerate(socialgame_env.envs):
+            self.loggers[env_idx].on_episode_step(worker=worker, base_env=env, episode=episode, env_index=env_idx, **kwargs)
+
+    def save(self):
+        for logger in self.loggers.values():
+            logger.save()

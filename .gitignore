@@ -11,4 +11,5 @@ wandb/
 .cache/
 __pycache__
 *.egg-info
+.git-credentials
 *.csv
