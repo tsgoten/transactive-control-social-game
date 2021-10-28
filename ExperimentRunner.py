@@ -317,6 +317,31 @@ parser.add_argument(
     help="List of complex_batt_pv_scenarios to have separate agents for",
     default=[]
 )
+# Hypernetwork parameters
+parser.add_argument(
+    "--hnet_embedding_dim",
+    help="Size of the embedding",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_num_layers",
+    help="Number of linear layers",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_num_hidden",
+    help="Size of the hidden layers",
+    type= int,
+    default=1
+)
+parser.add_argument(
+    "--hnet_out_params_path",
+    help="Path to a file containing a dict specifying the size of the output weights",
+    type= str,
+    default="./ppo_param_dict.txt"
+)
 #
 # Call get_agent and train to recieve the agent and then train it. 
 #
