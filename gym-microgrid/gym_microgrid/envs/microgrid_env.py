@@ -888,6 +888,7 @@ class CounterfactualMicrogridEnvRLLib(MicrogridEnvRLLib, MultiAgentEnv):
 
         return
 
+from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 
 class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
     def __init__(self,
@@ -913,9 +914,10 @@ class MultiAgentMicroGridEnvRLLib(MultiAgentEnv):
         self.total_iter = 0
         
         self.configs = [deepcopy(env_config) for _ in self.complex_batt_pv_scenarios]
-        for i, config in enumerate(self.configs):
-            config["complex_batt_pv_scenario"] = int(self.complex_batt_pv_scenarios[i])
-        self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
+        # for i, config in enumerate(self.configs):
+        #     config["complex_batt_pv_scenario"] = int(self.complex_batt_pv_scenarios[i])
+        # self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
+        self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
         #WARNING: THESE WILL NOT WORK IF NOT ALL ENVS HAVE THE SAME OBS/ACTION SPACE
         self.observation_space = self.envs[0].observation_space
         self.action_space = self.envs[0].action_space

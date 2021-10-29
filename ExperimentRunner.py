@@ -89,7 +89,7 @@ def pfl_hnet_update(agent, result, args, old_weights):
     new_weight_dict = {}
     for agent_id in curr_weights.keys():
         new_weights = hnet(agent_id)
-        new_weight_dict(agent_id) = new_weights
+        new_weight_dict[agent_id] = new_weights
     agent.set_weights(new_weight_dict)
     return result
     
@@ -115,7 +115,8 @@ def train(agent, args):
     while training_steps < num_steps:
         result = agent.train()
         if args.gym_env == "microgrid_multi":
-            result = pfl_hnet_update(agent, result, args)
+            print("****\nWould've done a PFL HNET Update here.\n****")
+            # result = pfl_hnet_update(agent, result, args)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
