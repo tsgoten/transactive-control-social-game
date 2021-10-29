@@ -12,7 +12,8 @@ import ray.rllib.agents.ppo as ray_ppo
 from pfl_hypernet import PFL_Hypernet
 
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
-from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib, MultiAgentMicroGridEnvRLLib)
+from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib)
+from gym_microgrid.envs.multiagent_env import (MultiAgentSocialGameEnv, MultiAgentMicrogridEnv)
 import torch
 hnet = None
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -31,13 +32,13 @@ def get_agent(args):
 
     config = {}
     if args.gym_env == "microgrid_multi":
-        hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
-                    embedding_dim = args.hnet_embedding_dim, 
-                    num_layers = args.hnet_num_layers,
-                    num_hidden = args.hnet_num_hidden,
-                    out_params_path = args.hnet_out_params_path,
-                    lr = args.hnet_lr,
-                    device = device)
+        # hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
+        #             embedding_dim = args.hnet_embedding_dim, 
+        #             num_layers = args.hnet_num_layers,
+        #             num_hidden = args.hnet_num_hidden,
+        #             out_params_path = args.hnet_out_params_path,
+        #             lr = args.hnet_lr,
+        #             device = device)
 
         config["multiagent"] = {
             "policies": {str(i): (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
@@ -128,19 +129,15 @@ def train(agent, args):
     training_steps = 0
     if args.gym_env == "microgrid_multi":
         weights = {}
-        for agent_id in range(len(args.scenarios)):
-            weights[str(agent_id)] = hnet(int(agent_id))
+        # for agent_id in range(len(args.scenarios)):
+        #     weights[str(agent_id)] = hnet(int(agent_id))
         agent.set_weights(weights)
             
     while training_steps < num_steps:
         result = agent.train()
         if args.gym_env == "microgrid_multi":
-<<<<<<< HEAD
-            print("****\nWould've done a PFL HNET Update here.\n****")
-            # result = pfl_hnet_update(agent, result, args)
-=======
-            result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
->>>>>>> 91e2c93344f35e82dc9042ebd88b3ff1a9435f71
+            print("****\nShould do hnet update\n****")
+            # result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
@@ -164,7 +161,7 @@ def train(agent, args):
 environments = {
     "socialgame": SocialGameEnvRLLib,
     "microgrid": MicrogridEnvRLLib,
-    "microgrid_multi": MultiAgentMicroGridEnvRLLib
+    "microgrid_multi": MultiAgentMicrogridEnv
 }
 
 parser = argparse.ArgumentParser()
