@@ -1,14 +1,18 @@
 import torch
 import torch.nn as nn
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr, device):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
         self.lr = lr
         self.n_nodes = n_nodes
         self.embedding_dim = embedding_dim
+        self.device = device
 
+        f = open(out_params_path, "r")
+        param_string = f.read()
+        self.out_params_dict = eval(param_string)
         self.out_dim = self.calculate_out_dim(out_params_path)
 
         self.validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
@@ -26,21 +30,28 @@ class PFL_Hypernet(nn.Module):
             self.layers.append(nn.ReLu())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
 
-        self.net = nn.Sequential(*self.layers)
+        self.net = nn.Sequential(*self.layers).to(device)
         
-    def calculate_out_dim(self, out_params_path):
-        f = open(out_params_path, "r")
-        param_string = f.read()
-        param_shapes = eval(param_string)
+    def calculate_out_dim(self):
         dim = 0
-        for _, v in param_shapes.items():
+        self.products_dict = {}
+        for k, v in self.params_dict.items():
             product = 1
             for i in range(len(v)):
                 product *= v[i]
             dim += product
+            self.products_dict[k] = product
         return product
+
+    def create_weight_dict(self, weight_vector):
+        return_dict = {}
+        index = 0
+        for k in self.params_dict.keys():
+           return_dict[k] = weight_vector[index:index + self.products_dict[k]].reshape(self.params_dict[k])
+           index += self.products_dict[k]
+        return return_dict
         
-    def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, out_dim, lr):
+    def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, lr):
         assert n_nodes > 0, "n_nodes <= 0"
         assert isinstance(n_nodes, int) == True, "n_nodes must be an int"
         assert embedding_dim > 0, "embedding_dim <= 0"
@@ -52,4 +63,4 @@ class PFL_Hypernet(nn.Module):
         assert lr > 0, "lr <= 0"
         
     def forward(self, x):
-        return self.net(x)
+        return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
