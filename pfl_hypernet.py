@@ -13,7 +13,7 @@ class PFL_Hypernet(nn.Module):
         f = open(out_params_path, "r")
         param_string = f.read()
         self.out_params_dict = eval(param_string)
-        self.out_dim = self.calculate_out_dim(out_params_path)
+        self.out_dim = self.calculate_out_dim()
 
         self.validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
         
@@ -27,7 +27,7 @@ class PFL_Hypernet(nn.Module):
             for i in range(1, num_layers - 1):
                 self.layers.append(nn.ReLU())
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
-            self.layers.append(nn.ReLu())
+            self.layers.append(nn.ReLU())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
 
         self.net = nn.Sequential(*self.layers).to(device)
@@ -35,19 +35,19 @@ class PFL_Hypernet(nn.Module):
     def calculate_out_dim(self):
         dim = 0
         self.products_dict = {}
-        for k, v in self.params_dict.items():
+        for k, v in self.out_params_dict.items():
             product = 1
             for i in range(len(v)):
                 product *= v[i]
             dim += product
             self.products_dict[k] = product
-        return product
+        return dim
 
     def create_weight_dict(self, weight_vector):
         return_dict = {}
         index = 0
-        for k in self.params_dict.keys():
-           return_dict[k] = weight_vector[index:index + self.products_dict[k]].reshape(self.params_dict[k])
+        for k in self.out_params_dict.keys():
+           return_dict[k] = weight_vector[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
            index += self.products_dict[k]
         return return_dict
         

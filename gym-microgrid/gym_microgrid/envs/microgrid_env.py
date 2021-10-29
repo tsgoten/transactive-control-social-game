@@ -52,7 +52,7 @@ class MicrogridEnv(gym.Env):
             one_day,
             energy_in_state,
         )
-
+        print("two_price_State: {}".format(two_price_state))
         #Assigning Instance Variables
         self.action_space_string = action_space_string
         self.number_of_participants = number_of_participants
@@ -615,7 +615,7 @@ class MicrogridEnvRLLib(MicrogridEnv):
             reward_function = env_config["reward_function"],
             smirl_weight=env_config["smirl_weight"], 
             complex_batt_pv_scenario=env_config.get("complex_batt_pv_scenario", 1), # set to 1 if not specified in config
-            two_price_state = False,
+            two_price_state = True,
         )
         print("Initialized RLLib child class for MicrogridEnv.")
 

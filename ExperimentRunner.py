@@ -15,6 +15,7 @@ from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
 from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib, MultiAgentMicroGridEnvRLLib)
 import torch
 hnet = None
+hnet_optimizer = None
 device = "cuda" if torch.cuda.is_available() else "cpu"
 def get_agent(args):
     global hnet
@@ -81,6 +82,7 @@ def get_agent(args):
     # Add more algorithms here. 
 
 def pfl_hnet_update(agent, result, args, old_weights):
+    breakpoint()
     curr_weights = agent.get_weights()
     # set gradients to 0 to start w
     hnet_optimizer.zero_grad()
@@ -103,10 +105,17 @@ def pfl_hnet_update(agent, result, args, old_weights):
     for agent_id in curr_weights.keys():
         new_weights = hnet(int(agent_id))
         new_weight_dict[agent_id] = new_weights
-    agent.set_weights(new_weight_dict)
+    agent.set_weights(detach_weights(new_weight_dict))
     return result, new_weight_dict
 
-    
+def detach_weights(weights):
+    new_weights = {}
+    for agent_id, agent_params in weights.items():
+        agent_param_dict = {}
+        for k, v in agent_params.items():
+            agent_param_dict[k] = v.detach()
+        new_weights[agent_id] = agent_param_dict
+    return new_weights
 
 def train(agent, args):
     """
@@ -126,12 +135,13 @@ def train(agent, args):
     print("Beginning training.")
     to_log = ["episode_reward_mean"]
     training_steps = 0
+    #breakpoint()
     if args.gym_env == "microgrid_multi":
         weights = {}
         for agent_id in range(len(args.scenarios)):
             weights[str(agent_id)] = hnet(int(agent_id))
-        agent.set_weights(weights)
-            
+        agent.set_weights(detach_weights(weights))
+    #breakpoint()
     while training_steps < num_steps:
         result = agent.train()
         if args.gym_env == "microgrid_multi":
