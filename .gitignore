@@ -14,5 +14,5 @@ __pycache__
 *.csv
 
 .dvc
-.git-credentials
+.git*
 *.vs*
