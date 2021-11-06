@@ -53,7 +53,9 @@ class BaseMultiAgentEnv(MultiAgentEnv):
         return obs_dict, rew_dict, info_dict, done_dict
 
     def _get_observation(self):
-        return {str(i): self.envs[i]._get_observation() for i in range(len(self.envs))}
+        ret =  {str(i): self.envs[i]._get_observation() for i in range(len(self.envs))}
+        #breakpoint()
+        return ret
 
     def reset(self):
         """ Resets the environment on the current day """

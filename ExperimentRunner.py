@@ -14,12 +14,15 @@ from pfl_hypernet import PFL_Hypernet
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
 from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib)
 from gym_microgrid.envs.multiagent_env import (MultiAgentSocialGameEnv, MultiAgentMicrogridEnv)
+
 import torch
+import torch.optim as optim
+from collections import OrderedDict
 hnet = None
 hnet_optimizer = None
 device = "cuda" if torch.cuda.is_available() else "cpu"
 def get_agent(args):
-    global hnet
+    global hnet, hnet_optimizer
     """
     Purpose: Import the algorithm and policy to create an agent. 
     Returns: Agent
@@ -33,16 +36,16 @@ def get_agent(args):
 
     config = {}
     if args.gym_env == "microgrid_multi":
-        # hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
-        #             embedding_dim = args.hnet_embedding_dim, 
-        #             num_layers = args.hnet_num_layers,
-        #             num_hidden = args.hnet_num_hidden,
-        #             out_params_path = args.hnet_out_params_path,
-        #             lr = args.hnet_lr,
-        #             device = device)
-
+        hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
+                    embedding_dim = args.hnet_embedding_dim, 
+                    num_layers = args.hnet_num_layers,
+                    num_hidden = args.hnet_num_hidden,
+                    out_params_path = args.hnet_out_params_path,
+                    lr = args.hnet_lr,
+                    device = device)
+        hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         config["multiagent"] = {
-            "policies": {str(i): (None, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
+            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
             "policy_mapping_fn": lambda agent_id: agent_id
         }
     #### Algorithm: PPO ####
@@ -54,7 +57,7 @@ def get_agent(args):
         config["framework"] = "torch"
         config["train_batch_size"] = 256
         config["sgd_minibatch_size"] = 16
-        config["lr"] = 0.001
+        config["lr"] = 0.00
         config["clip_param"] = 0.3
         # config["num_gpus"] =  1 # this may throw an error
         config["num_workers"] = 1
@@ -83,14 +86,14 @@ def get_agent(args):
     # Add more algorithms here. 
 
 def pfl_hnet_update(agent, result, args, old_weights):
-    breakpoint()
     curr_weights = agent.get_weights()
     # set gradients to 0 to start w
     hnet_optimizer.zero_grad()
+    # update hnet weights
     num_agents = len(curr_weights)
     for agent_id in curr_weights.keys():
         # calculating delta theta
-        delta_theta = OrderedDict({k: old_weights[agent_id][k] - curr_weights[agent_id][k] for k in weights.keys()})
+        delta_theta = OrderedDict({k: old_weights[agent_id][k] - torch.tensor(curr_weights[agent_id][k], device=device) for k in curr_weights[agent_id].keys()})
 
         # calculating phi gradient
         hnet_grads = torch.autograd.grad(
@@ -99,7 +102,7 @@ def pfl_hnet_update(agent, result, args, old_weights):
         # update hnet weights
         for p, g in zip(hnet.parameters(), hnet_grads):
             # normalize so we end up with a grad that is the mean of all the updates from each agent
-            p.grad += g / num_agents 
+            p.grad = g / num_agents 
     torch.nn.utils.clip_grad_norm_(hnet.parameters(), 50)
     hnet_optimizer.step()
     new_weight_dict = {}
@@ -139,22 +142,15 @@ def train(agent, args):
     #breakpoint()
     if args.gym_env == "microgrid_multi":
         weights = {}
-<<<<<<< HEAD
         for agent_id in range(len(args.scenarios)):
-            weights[str(agent_id)] = hnet(int(agent_id))
+            weights[str(agent_id)] = hnet(agent_id)
         agent.set_weights(detach_weights(weights))
     #breakpoint()
-=======
-        # for agent_id in range(len(args.scenarios)):
-        #     weights[str(agent_id)] = hnet(int(agent_id))
-        agent.set_weights(weights)
-            
->>>>>>> 4a1235cdd9399a5cbfee43187f0a13733a7ce6e6
     while training_steps < num_steps:
         result = agent.train()
         if args.gym_env == "microgrid_multi":
             print("****\nShould do hnet update\n****")
-            # result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
+            result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
         print(log)
@@ -215,6 +211,7 @@ parser.add_argument(
     default="log_cost_regularized",
     choices=["scaled_cost_distance", "log_cost_regularized", "log_cost", "scd", "lcr", "lc", "market_solving", "profit_maximizing"],
 )
+
 # Environment Arguments
 parser.add_argument(
     "--gym_env", 

@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from collections import OrderedDict
+
 class PFL_Hypernet(nn.Module):
     def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr, device):
         super().__init__()
@@ -29,7 +31,6 @@ class PFL_Hypernet(nn.Module):
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
             self.layers.append(nn.ReLU())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
-
         self.net = nn.Sequential(*self.layers).to(device)
         
     def calculate_out_dim(self):
@@ -44,10 +45,24 @@ class PFL_Hypernet(nn.Module):
         return dim
 
     def create_weight_dict(self, weight_vector):
-        return_dict = {}
+        weight_vector = weight_vector.squeeze()
+        return_dict = OrderedDict()
         index = 0
         for k in self.out_params_dict.keys():
-           return_dict[k] = weight_vector[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
+
+            # restrict weights to have mean 0 and variance scaled with avg of fan_in and fan_out, similar to Xavier initialization
+           
+           weights = weight_vector[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
+           if len(self.out_params_dict[k]) > 1:
+            fan_in = self.out_params_dict[k][0]
+            fan_out = self.out_params_dict[k][1]
+            mean_w = weights.mean()
+            std_w = weights.std()
+            weights = (weights - mean_w) / std_w
+            weights *= (2 / (fan_in + fan_out)) ** 0.5
+
+           return_dict[k] = weights
+           
            index += self.products_dict[k]
         return return_dict
         

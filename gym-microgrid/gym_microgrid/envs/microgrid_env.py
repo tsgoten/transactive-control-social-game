@@ -228,13 +228,16 @@ class MicrogridEnv(gym.Env):
             print("you've inputted an incorrect scenario")
             raise AssertionError
 
+        pvsizes = pvsizes[:self.number_of_participants]
+        battery_nums = battery_nums[:self.number_of_participants]
+
         self.pv_sizes = pvsizes
         self.battery_sizes = battery_nums
 
         # Get energy from building_data.csv file,  each office building has readings in kWh. Interpolate to fill missing values
         df = pd.read_csv('./gym-microgrid/gym_microgrid/envs/building_data.csv').interpolate().fillna(0)
         building_names = df.columns[5:] # Skip first few columns 
-        for i in range(len(building_names)):
+        for i in range(self.number_of_participants):
             name = building_names[i]
             prosumer = Prosumer(name, np.squeeze(df[[name]].values), .001*np.squeeze(df[['PV (W)']].values), battery_num = battery_nums[i], pv_size = pvsizes[i])
             prosumer_dict[name] = prosumer
