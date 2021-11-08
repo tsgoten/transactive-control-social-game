@@ -107,7 +107,8 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
         """
         MultiAgent implementation of SocialGame. TODO: Add descreption. 
         """
-        self.configs = env_config
+        self.configs = [deepcopy(env_config) for _ in range(2)]
+        self.total_iter = 0
         self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
         self.observation_space = self.envs[0].observation_space
         self.action_space = self.envs[0].action_space

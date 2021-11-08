@@ -46,7 +46,7 @@ def get_agent(args):
         hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         config["multiagent"] = {
             "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
-            "policy_mapping_fn": lambda agent_id: agent_id
+            "policy_mapping_fn": lambda agent_id, episode=None: agent_id
         }
     #### Algorithm: PPO ####
     if args.algo == "ppo":
@@ -174,7 +174,8 @@ def train(agent, args):
 environments = {
     "socialgame": SocialGameEnvRLLib,
     "microgrid": MicrogridEnvRLLib,
-    "microgrid_multi": MultiAgentMicrogridEnv
+    "microgrid_multi": MultiAgentMicrogridEnv,
+    "socialgame_multi": MultiAgentSocialGameEnv
 }
 
 parser = argparse.ArgumentParser()
@@ -217,7 +218,7 @@ parser.add_argument(
     "--gym_env", 
     help="Which Gym Environment you wish to use",
     type=str,
-    choices=["socialgame", "microgrid", "microgrid_multi"],
+    choices=["socialgame", "microgrid", "microgrid_multi", "socialgame_multi"],
     default="socialgame"
 )
 parser.add_argument(
