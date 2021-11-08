@@ -1,9 +1,3 @@
-**Status:** Work in progress. SocialGameEnv is working and ready-to-use.
-
-TODO:
-- [ ] Hourly Environment
-
-
 # gym-socialgame
 OpenAI Gym environment for a social game.
 
