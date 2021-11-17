@@ -1,9 +1,3 @@
-"""Example of using RLlib's debug callbacks.
-
-Here we use callbacks to track the average CartPole pole angle magnitude as a
-custom metric.
-"""
-
 from typing import Dict
 import numpy as np
 import pandas as pd
@@ -179,37 +173,119 @@ class CustomCallbacks(DefaultCallbacks):
         episode.custom_metrics["num_batches"] += 1
         return
 
-class CustomCallbacksWrapper(CustomCallbacks):
-    def __init__(self, log_path, save_interval, obs_dim=10):
-        super(DefaultCallbacks).__init__()
+class MultiAgentCallbacks(DefaultCallbacks):
+    def __init__(self, log_path, save_interval, num_agents=1, obs_dim=10, env_id=0, unwrap_env=True):
+        super().__init__()
         self.log_path = log_path
         self.save_interval = save_interval
+        self.cols = ["energy_reward", "energy_cost"]
+        for i in range(obs_dim):
+            self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
-        self.loggers = {}
+        self.env_id = env_id
+
+        self.num_agents = num_agents 
+        self.agents = [f"Agent_{i}" for i in range(num_agents)]
+        self.log_vals = {}
+        for agent in self.agents:
+            for col in self.cols:
+                self.log_vals[f"{agent}/{col}"] = []
+        self.log_vals["step"] = []
+
+        self.unwrap_env = unwrap_env
+        print(f"Initialized MULTI Agent Custom Callbacks for {self.num_agents} Agents.")
+
+
+    def save(self):
+        log_df=pd.DataFrame(data=self.log_vals)
+        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+        for v in self.log_vals.values():
+            v.clear()
+
+        self.steps_since_save=0
+
 
     def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
                          policies: Dict[str, Policy],
                          episode: MultiAgentEpisode, env_index: int, **kwargs):
-        socialgame_env = base_env.get_unwrapped()[0]
-        for env_idx, env in enumerate(socialgame_env.envs):
-            if env_idx not in self.loggers:
-                self.loggers[env_idx] = CustomCallbacks(self.log_path, self.save_interval, self.obs_dim, env_idx, unwrap_env=False)
-                self.loggers[env_idx].save()
-            self.loggers[env_idx].on_episode_start(worker = worker, base_env = env, policies=policies, episode = episode, env_index = env_idx, **kwargs)
+
+        for agent in self.agents:
+            episode.user_data[f"{agent}/energy_reward"] = []
+            episode.hist_data[f"{agent}/energy_reward"] = []
+            episode.user_data[f"{agent}/energy_cost"] = []
+            episode.hist_data[f"{agent}/energy_cost"] = []
+    
+    
+    def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
+                        episode: MultiAgentEpisode, env_index: int, **kwargs):
+        if self.unwrap_env:
+            socialgame_env = base_env.get_unwrapped()[0]
+        else:
+            socialgame_env = base_env
+        step_i = socialgame_env.total_iter
+        self.log_vals["step"].append(step_i)
+
+        all_envs = socialgame_env.envs
+        assert len(all_envs) == self.num_agents
+
+        # TODO: Implement for planning env. Take a look at CustomCallbacks.
+        for i in range(self.num_agents):
+            agent = self.agents[i]
+            env = all_envs[i]
+
+            if env.last_energy_reward:
+                energy_rew = env.last_energy_reward
+                episode.user_data[f"{agent}/energy_reward"].append(energy_rew)
+                episode.hist_data[f"{agent}/energy_reward"].append(energy_rew)
+                self.log_vals[f"{agent}/energy_reward"].append(energy_rew)
+            else:
+                self.log_vals[f"{agent}/energy_reward"].append(np.nan)
+
+            if env.last_energy_cost:
+                energy_cost = env.last_energy_cost
+                episode.user_data[f"{agent}/energy_cost"].append(energy_cost)
+                episode.hist_data[f"{agent}/energy_cost"].append(energy_cost)
+                self.log_vals[f"{agent}/energy_cost"].append(energy_cost)
+            else:
+                self.log_vals[f"{agent}/energy_cost"].append(np.nan)
+
+        # TODO: Implement observations. Take a look at CustomCallbacks.
+        self.steps_since_save += 1
+        if self.steps_since_save == self.save_interval:
+            self.save()
+        return
+
     
     def on_episode_end(self, *, worker: RolloutWorker, base_env: BaseEnv,
                        policies: Dict[str, Policy], episode: MultiAgentEpisode,
                        env_index: int, **kwargs):
-        socialgame_env = base_env.get_unwrapped()[0]
-        for env_idx, env in enumerate(socialgame_env.envs):
-            self.loggers[env_idx].on_episode_end(worker=worker, base_env=env, policies=policies, episode=episode, env_index=env_idx, **kwargs)
+        if self.unwrap_env:
+            socialgame_env = base_env.get_unwrapped()[0]
+        else:
+            socialgame_env = base_env
 
-    def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
-                        episode: MultiAgentEpisode, env_index: int, **kwargs):
-        socialgame_env = base_env.get_unwrapped()[0]
-        for env_idx, env in enumerate(socialgame_env.envs):
-            self.loggers[env_idx].on_episode_step(worker=worker, base_env=env, episode=episode, env_index=env_idx, **kwargs)
+        for agent in self.agents:
+            episode.custom_metrics[f"{agent}/energy_reward"] = np.mean(episode.user_data[f"{agent}/energy_reward"])
+            episode.custom_metrics[f"{agent}/energy_cost"] = np.mean(episode.user_data[f"{agent}/energy_cost"])
 
-    def save(self):
-        for logger in self.loggers.values():
-            logger.save()
+        return
+
+
+    def on_sample_end(self, *, worker: RolloutWorker, samples: SampleBatch,
+                      **kwargs):
+        return
+
+    def on_train_result(self, *, trainer, result: dict, **kwargs):
+        result["callback_ok"] = True
+
+
+    def on_postprocess_trajectory(
+            self, *, worker: RolloutWorker, episode: MultiAgentEpisode,
+            agent_id: str, policy_id: str, policies: Dict[str, Policy],
+            postprocessed_batch: SampleBatch,
+            original_batches: Dict[str, SampleBatch], **kwargs):
+        if "num_batches" not in episode.custom_metrics:
+            episode.custom_metrics["num_batches"] = 0
+
+        episode.custom_metrics["num_batches"] += 1
+        return
