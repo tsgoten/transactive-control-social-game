@@ -12,6 +12,7 @@ wandb/
 __pycache__
 *.egg-info
 *.csv
+*.pem
 
 #caches
 .python_history
