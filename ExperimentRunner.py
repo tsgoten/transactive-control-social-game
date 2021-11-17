@@ -5,7 +5,7 @@ import os
 import wandb
 import math
 import utils
-from custom_callbacks import CustomCallbacks, CustomCallbacksWrapper
+from custom_callbacks import CustomCallbacks, MultiAgentCallbacks
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
@@ -67,7 +67,13 @@ def get_agent(args):
         obs_dim = math.prod(obs_space.shape)
             
         out_path = os.path.join(args.log_path, "bulk_data.h5")
-        callbacks = CustomCallbacksWrapper(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
+        if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
+            # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. 
+            callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
+                                            obs_dim=obs_dim, num_agents=3)
+        else:
+            callbacks = CustomCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
+
         config["callbacks"] = lambda: callbacks
         logger_creator = utils.custom_logger_creator(args.log_path)
 
@@ -137,7 +143,7 @@ def train(agent, args):
 
     ## Beginning Training ##
     print("Beginning training.")
-    to_log = ["episode_reward_mean"]
+    to_log = []
     training_steps = 0
     #breakpoint()
     if args.gym_env == "microgrid_multi":
