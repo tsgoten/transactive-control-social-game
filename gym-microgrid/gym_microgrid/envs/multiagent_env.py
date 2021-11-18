@@ -47,7 +47,7 @@ class BaseMultiAgentEnv(MultiAgentEnv):
             done_dict[i] = done
             info_dict[i] = info
             if done:
-                all_ = False
+                all_ = all_ and done
             #observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
         info_dict["__all__"] = all_
         return obs_dict, rew_dict, info_dict, done_dict
@@ -107,7 +107,8 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
         """
         MultiAgent implementation of SocialGame. TODO: Add descreption. 
         """
-        self.configs = [deepcopy(env_config) for _ in range(2)]
+        # TODO: Modify so it's not just a copy of the same agent
+        self.configs = [deepcopy(env_config) for _ in range(3)]
         self.total_iter = 0
         self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
         self.observation_space = self.envs[0].observation_space
