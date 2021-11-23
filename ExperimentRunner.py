@@ -35,8 +35,8 @@ def get_agent(args):
     act_space = dummy_env.action_space
 
     config = {}
-    if args.gym_env == "microgrid_multi":
-        hnet = PFL_Hypernet(n_nodes = len(args.scenarios), 
+    if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
+        hnet = PFL_Hypernet(n_nodes = 3, # TODO: HARDCODED FOR NOW 
                     embedding_dim = args.hnet_embedding_dim, 
                     num_layers = args.hnet_num_layers,
                     num_hidden = args.hnet_num_hidden,
@@ -45,7 +45,7 @@ def get_agent(args):
                     device = device)
         hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         config["multiagent"] = {
-            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(args.scenarios)},
+            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(3))}, #TODO: ALSO HARDCODED HERE
             "policy_mapping_fn": lambda agent_id, episode=None: agent_id
         }
     #### Algorithm: PPO ####
@@ -68,7 +68,7 @@ def get_agent(args):
             
         out_path = os.path.join(args.log_path, "bulk_data.h5")
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-            # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. 
+            # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. And above in Hypernet setup
             callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
                                             obs_dim=obs_dim, num_agents=3)
         else:
@@ -99,6 +99,7 @@ def pfl_hnet_update(agent, result, args, old_weights):
     num_agents = len(curr_weights)
     for agent_id in curr_weights.keys():
         # calculating delta theta
+        
         delta_theta = OrderedDict({k: old_weights[agent_id][k] - torch.tensor(curr_weights[agent_id][k], device=device) for k in curr_weights[agent_id].keys()})
 
         # calculating phi gradient
@@ -145,16 +146,15 @@ def train(agent, args):
     print("Beginning training.")
     to_log = []
     training_steps = 0
-    #breakpoint()
-    if args.gym_env == "microgrid_multi":
+    if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         weights = {}
-        for agent_id in range(len(args.scenarios)):
+        for agent_id in range(3): # TODO: HARDCODED
             weights[str(agent_id)] = hnet(agent_id)
         agent.set_weights(detach_weights(weights))
     #breakpoint()
     while training_steps < num_steps:
         result = agent.train()
-        if args.gym_env == "microgrid_multi":
+        if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
             print("****\nShould do hnet update\n****")
             result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         training_steps = result["timesteps_total"]
@@ -383,7 +383,7 @@ parser.add_argument(
     "--hnet_out_params_path",
     help="Path to a file containing a dict specifying the size of the output weights",
     type= str,
-    default="./ppo_param_dict.txt"
+    default="./socialgame_param_dict.txt"
 )
 parser.add_argument(
     "--hnet_lr",
