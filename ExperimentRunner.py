@@ -57,7 +57,7 @@ def get_agent(args):
         config["framework"] = "torch"
         config["train_batch_size"] = 256
         config["sgd_minibatch_size"] = 16
-        config["lr"] = 0.00
+        config["lr"] = 3e-4
         config["clip_param"] = 0.3
         # config["num_gpus"] =  1 # this may throw an error
         config["num_workers"] = 1
