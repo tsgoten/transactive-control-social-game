@@ -264,6 +264,7 @@ class MultiAgentCallbacks(DefaultCallbacks):
         else:
             socialgame_env = base_env
 
+        # TODO: Check the length of episode.user_data["energy_reward"] and episode.user_data["energy_cost"]
         for agent in self.agents:
             episode.custom_metrics[f"{agent}/energy_reward"] = np.mean(episode.user_data[f"{agent}/energy_reward"])
             episode.custom_metrics[f"{agent}/energy_cost"] = np.mean(episode.user_data[f"{agent}/energy_cost"])
