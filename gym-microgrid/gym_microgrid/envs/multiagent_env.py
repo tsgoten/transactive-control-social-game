@@ -113,3 +113,15 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
         self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
         self.observation_space = self.envs[0].observation_space
         self.action_space = self.envs[0].action_space
+
+class FeudalSocialGameEnv(MultiAgentSocialGameEnv):
+    def __init__(self, env_config):
+        """
+        MultiAgent implementation of a feudal approach to SocialGame. TODO: Add descreption. 
+        """
+        # TODO: Modify so it's not just a copy of the same agent
+        self.configs = [deepcopy(env_config) for _ in range(3)]
+        self.total_iter = 0
+        self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
+        self.observation_space = self.envs[0].observation_space
+        self.action_space = self.envs[0].action_space
