@@ -5,7 +5,9 @@ import os
 import wandb
 import math
 import utils
+import json
 from custom_callbacks import CustomCallbacks, MultiAgentCallbacks
+from copy import deepcopy
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
@@ -21,6 +23,7 @@ from collections import OrderedDict
 hnet = None
 hnet_optimizer = None
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def get_agent(args):
     global hnet, hnet_optimizer
     """
@@ -30,7 +33,9 @@ def get_agent(args):
     """
     ### Setup for MultiAgent ###
     #Create a dummy environment to get action and observation space for our settings
-    dummy_env = environments[args.gym_env](vars(args))
+    # dummy_env = environments[args.gym_env](vars(args))
+    # TODO: HACK
+    dummy_env = environments["socialgame"](vars(args))
     obs_space = dummy_env.observation_space
     act_space = dummy_env.action_space
 
@@ -185,6 +190,15 @@ environments = {
 }
 
 parser = argparse.ArgumentParser()
+# Custom Agents Arguments
+parser.add_argument(
+    "--custom_config",
+    # type=argparse.FileType("r"),
+    type=str,
+    default = None,
+    help="Path to custom config file"
+)
+# Library Argument
 parser.add_argument(
     "--library",
     help = "What RL Library backend is in use",
@@ -404,10 +418,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Running with following options: {args}")
 
-    # ray.init(local_mode=args.local_mode)
-    # ray.init()
-    # TODO
-
     # Uploading logs to wandb
     if args.wandb:
         wandb.init(project="energy-demand-response-game", entity="social-game-rl")
@@ -416,12 +426,10 @@ if __name__ == "__main__":
 
     # Get Agent
     agent = get_agent(args)
-    # TODO: Implement
     print("Agent initialied.")
 
     # Training
     print(f'Beginning Testing! Logs are being saved somewhere')
-    # TODO: Implement
     train(agent, args)
 
 
