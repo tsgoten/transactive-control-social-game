@@ -22,10 +22,11 @@ import torch.optim as optim
 from collections import OrderedDict
 hnet = None
 hnet_optimizer = None
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
 
 def get_agent(args):
-    global hnet, hnet_optimizer
+    global hnet, hnet_optimizer, device
     """
     Purpose: Import the algorithm and policy to create an agent. 
     Returns: Agent
@@ -40,6 +41,8 @@ def get_agent(args):
     act_space = dummy_env.action_space
 
     config = {}
+    if args.num_gpus > 0:
+        device = "cuda"
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         hnet = PFL_Hypernet(n_nodes = 3, # TODO: HARDCODED FOR NOW 
                     embedding_dim = args.hnet_embedding_dim, 
