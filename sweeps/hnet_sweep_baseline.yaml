@@ -1,0 +1,36 @@
+command:
+- ${env}
+- python
+- ${program}
+- -w
+- --gym_env=socialgame_multi
+- ${args}
+early_terminate:
+  eta: 3
+  max_iter: 4000
+  s: 2
+  type: hyperband
+method: bayes
+metric:
+  goal: minimize
+  name: ray/tune/custom_metrics/Agent_0/energy_cost_mean
+name: HNET Sweep
+parameters:
+  hnet_embedding_dim:
+    distribution: int_uniform
+    min: 1
+    max: 512
+  hnet_num_layers:
+    distribution: int_uniform
+    min: 1
+    max: 5
+  hnet_num_hidden:
+    distribution: int_uniform
+    min: 1
+    max: 512
+  hnet_lr:
+    distribution: log_uniform
+    min: -10
+    max: 1
+
+program: ExperimentRunner.py
