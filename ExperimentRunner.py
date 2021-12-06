@@ -59,7 +59,7 @@ def get_agent(args):
         config["sgd_minibatch_size"] = 16
         config["lr"] = 3e-4
         config["clip_param"] = 0.3
-        # config["num_gpus"] =  1 # this may throw an error
+        config["num_gpus"] =  args.num_gpus # this may throw an error
         config["num_workers"] = 1
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
@@ -353,6 +353,12 @@ parser.add_argument(
     help="Number of local model training steps",
     type= int,
     default=1
+)
+parser.add_argument(
+    "--num_gpus",
+    help="Number of gpus",
+    type= int,
+    default=0
 )
 parser.add_argument(
     "--scenarios",
