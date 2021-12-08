@@ -26,6 +26,7 @@
 # Run 8 examples concurrently
 #SBATCH --array=0-2
 
+SINGULARITY_CACHE_DIR=/global/scratch/users/lucas_spangher/transactive-control-social-game
 
 if test -f austin_docker.sif; then
     echo "docker image exists"
