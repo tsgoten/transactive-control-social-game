@@ -153,7 +153,7 @@ if __name__== "__main__":
     upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (20,), dtype = np.float64)
     upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (5,), dtype = np.float64)
     lower_level_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float64)
-    upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (2,), dtype = np.float64)
+    lower_level_action_space = spaces.Box(low = -1, high = 1, shape = (2,), dtype = np.float64)
 
     policies = {"upper_level_agent": (
         None, upper_level_obs_space, 
