@@ -32,3 +32,4 @@ if test -f austin_docker.sif; then
     singularity exec --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" sh -c "python feudal_trainer.py"
 else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
+fi
