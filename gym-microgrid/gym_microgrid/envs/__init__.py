@@ -5,6 +5,8 @@ from gym_microgrid.envs.microgrid_env import MicrogridEnvRLLib
 from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
 from gym_microgrid.envs.multiagent_env import MultiAgentMicrogridEnv
 
+from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
+
 from gym_microgrid.envs.microgrid_env import CounterfactualMicrogridEnvRLLib
 
 # from gym_socialgame.envs.socialgame_env_hourly import SocialGameEnvHourly
