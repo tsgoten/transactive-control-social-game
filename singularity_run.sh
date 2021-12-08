@@ -23,4 +23,5 @@
 # Wall clock limit (2hrs):
 #SBATCH --time=01:00:00
 
+export SINGULARITY_CACHEDIR="/global/scratch/users/$USER"
 singularity exec --nv --workdir ./tmp --bind $(pwd):$HOME library://yanlarry/default/singularity_phnet:v1 sh -c './test_experiment.sh'
