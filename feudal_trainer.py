@@ -11,6 +11,7 @@ import os
 
 from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
 from custom_callbacks import MultiAgentCallbacks
+import pdb
 
 parser = argparse.ArgumentParser()
 
@@ -201,6 +202,8 @@ if __name__== "__main__":
     )
 
     while args.num_steps > 1000:
+        print("in training loop")
+        pdb.set_trace()
         result = trainer.train()
         training_steps = result["timesteps_total"]
         log = result # {name: result[name] for name in to_log}
