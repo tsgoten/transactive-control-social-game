@@ -6,8 +6,10 @@ import ray
 from ray import tune
 import ray.rllib.agents.sac.sac as sac
 
-from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
+import utils
 
+from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
+from custom_callbacks import MultiAgentCallbacks
 
 parser = argparse.ArgumentParser()
 
@@ -175,15 +177,26 @@ if __name__== "__main__":
         "env_config": vars(args)
     }
 
+    out_path = os.path.join(args.log_path, "bulk_data.h5")
+    callbacks = MultiAgentCallbacks(
+        log_path=out_path, 
+        save_interval=args.bulk_log_interval, 
+        obs_dim=20, 
+        num_agents=6)
+
+    config["callbacks"] = lambda: callbacks
+    logger_creator = utils.custom_logger_creator(args.log_path)
+
     trainer = sac.SACTrainer(
         env=FeudalSocialGameHourwise, 
         config=config,
+        logger_creator=logger_creator,
     )
 
     while training_steps > 1000:
         result = trainer.train()
         training_steps = result["timesteps_total"]
-        log = {name: result[name] for name in to_log}
+        log = result # {name: result[name] for name in to_log}
         
         print("------- training step -------")
         print()
