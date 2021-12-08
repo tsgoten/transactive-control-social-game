@@ -33,8 +33,10 @@ class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
     
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
+            print("executing higher level step")
             return self._high_level_step(action_dict["high_level_agent"])
         else:
+            print("executing lower level step")
             return self._low_level_step(np.concatenate(
                 [action_dict["lower_level_agent_{}".format(i)] for i in range(5)]))
 
@@ -58,22 +60,26 @@ class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
 
         ## previous goals 
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
-            env_obs[(10 + 2*i) : (10 + (2*i + 1))], self.current_goals[i]
+            env_obs[(10 + 2*i) : (10 + (2*i + 1))], 
+            self.current_goals[i]
         ) for i in range(5)}
 
         done = {"__all__": False}
 
         self.current_goals = self._upper_level_action_to_goal(action)
-        
+        print("higher level obs")
+        print(obs)
         return obs, rew, done, {}
 
     def _low_level_step(self, action): 
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action)
         
+        print("lower level obs")
         obs = {"upper_level_agent": f_obs}
         rew = {"upper_level_agent": f_rew}
         done = {"__all__": f_done}
 
+        print(obs)
         return obs, rew, done, {}
 
 class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
@@ -139,7 +145,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
 
 
     def _get_observation(self):
-        prev_price = self.prices[ (self.day - 1) % 365]
+        self.prev_price = self.prices[ (self.day - 1) % 365]
         next_price = self.prices[self.day]
 
         if self.bin_observation_space:

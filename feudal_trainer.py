@@ -201,7 +201,7 @@ if __name__== "__main__":
         logger_creator=logger_creator,
     )
 
-    while args.num_steps > 1000:
+    while args.num_steps < 1000:
         print("in training loop")
         pdb.set_trace()
         result = trainer.train()
