@@ -22,7 +22,7 @@ class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
         super().__init__(env_config)
         self.lower_level_env = FeudalSocialGameLowerHourEnv(env_config)
         self.observation_space = self.lower_level_env._create_observation_space()
-        self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float64)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
         self.price_in_state = True
         self.energy_in_state = True
 
@@ -96,7 +96,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         """
 
         dim = 3
-        return spaces.Box(low=-np.inf, high=np.inf, shape=(dim,), dtype=np.float64)
+        return spaces.Box(low=-np.inf, high=np.inf, shape=(dim,), dtype=np.float32)
 
 
     def set_total_demand_attribute(self, total_demand):
