@@ -15,7 +15,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
-import os
+
 
 class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
     def __init__(self, env_config):
