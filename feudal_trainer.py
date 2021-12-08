@@ -53,7 +53,7 @@ parser.add_argument(
     "--num_steps",
     help="Number of timesteps to train algo",
     type=int,
-    default=50000,
+    default=1000,
 )
 parser.add_argument(
     "--energy_in_state",
@@ -200,7 +200,7 @@ if __name__== "__main__":
         logger_creator=logger_creator,
     )
 
-    while training_steps > 1000:
+    while args.num_steps > 1000:
         result = trainer.train()
         training_steps = result["timesteps_total"]
         log = result # {name: result[name] for name in to_log}
