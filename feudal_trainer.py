@@ -130,6 +130,12 @@ parser.add_argument(
     action="store_true"
 )
 parser.add_argument(
+    "--smirl_weight",
+    help="Whether to run with SMiRL. When using SMiRL you must specify a weight.",
+    type = float,
+    default=None,
+)
+parser.add_argument(
     "--circ_buffer_size",
     help="Size of circular smirl buffer to use. Will use an unlimited size buffer in None",
     type = float,
