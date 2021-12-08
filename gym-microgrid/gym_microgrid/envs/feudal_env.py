@@ -29,7 +29,7 @@ class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
     def reset(self):
         ret = self._get_observation()
         self.current_goals = np.zeros(5)
-        return ret
+        return {"higher_level_agent": ret}
     
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
