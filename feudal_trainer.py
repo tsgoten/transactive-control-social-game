@@ -165,7 +165,7 @@ if __name__== "__main__":
     lower_level_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32)
     lower_level_action_space = spaces.Box(low = -1, high = 1, shape = (2,), dtype = np.float32)
 
-    policies = {"upper_level_agent": (
+    policies = {"higher_level_agent": (
         None, upper_level_obs_space, 
         upper_level_action_space, {"gamma": 1})}
     for i in range(5):
@@ -201,14 +201,14 @@ if __name__== "__main__":
         logger_creator=logger_creator,
     )
 
-    while args.num_steps > 1000:
+    training_step = 0
+
+    while training_step < args.num_steps:
         print("in training loop")
-        pdb.set_trace()
         result = trainer.train()
         training_steps = result["timesteps_total"]
         log = result # {name: result[name] for name in to_log}
         
-        print("------- training step -------")
-        print()
+        print(f"------- training step {training_step}-------")
         print(log)
 
