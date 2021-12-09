@@ -25,8 +25,17 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.price_in_state = True
         self.energy_in_state = True
         self.total_iter = 0
-
+        
+        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_rewards["higher_level_agent"] = 0
+        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_costs["higher_level_agent"] = 0
+        
     def reset(self):
+        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_rewards["higher_level_agent"] = 0
+        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_costs["higher_level_agent"] = 0
         ret = self.lower_level_env._get_observation()
         self.current_goals = np.zeros(5)
         return {"higher_level_agent": ret}
@@ -53,6 +62,10 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         goal_tuple = [goal, goal]
         return np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
 
+    def _compute_lower_level_costs(self, energy_tuple, price_tuple):
+        total_agent_energy_cost = np.sum(energy_tuple * price_tuple)
+        return total_agent_energy_cost
+
     def _high_level_step(self, action):
         print("higher level action")
         print(action)
@@ -64,10 +77,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         self.current_goals = self._upper_level_action_to_goal(action)
 
-        rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
-            env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-            self.current_goals[i]
-        ) for i in range(5)}
+        rew = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
 
         done = {"__all__": False}
 
@@ -82,11 +92,28 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action)
         
         print("lower level obs")
-        obs = {"higher_level_agent": f_obs}
-        rew = {"higher_level_agent": f_rew}
+        
+        env_obs = self.lower_level_env._get_observation()
+        
+        obs = {"lower_level_agent_{}".format(i): np.concatenate((env_obs[2*i:(2*i + 2)], [action[i]])) for i in range(5)}
+        obs.update({"higher_level_agent": f_obs})
+        
+        rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
+            f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
+            self.current_goals[i]
+        ) for i in range(5)}
+        rew.update({"higher_level_agent": f_rew})
         done = {"__all__": f_done}
 
-        print(obs)
+        self.last_energy_rewards = rew
+        
+        self.last_energy_costs = {"lower_level_agent_{}".format(i): self._compute_lower_level_costs(
+            f_obs[(10 + 2*i) : (10 + (2*i + 2))],
+            f_obs[(2*i) : (2*i + 2)]
+        ) for i in range(5)}
+        
+        self.last_energy_costs["higher_level_agent"] = self.lower_level_env.last_energy_cost
+
         return obs, rew, done, {}
 
 class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
@@ -145,6 +172,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         energy_consumptions = self._simulate_humans(points)
         self.energy_consumptions = energy_consumptions
         reward = self._get_reward(prev_price, energy_consumptions, reward_function = self.reward_function)
+        self.last_energy_cost = np.sum(prev_price * energy_consumptions["avg"])
         observation = self._get_observation()
     
         done = True
