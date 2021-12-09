@@ -21,8 +21,8 @@ class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
     def __init__(self, env_config):
         super().__init__(env_config)
         self.lower_level_env = FeudalSocialGameLowerHourEnv(env_config)
-        self.observation_space = self.lower_level_env._create_observation_space()
-        self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
+        #self.observation_space = self.lower_level_env._create_observation_space()
+        #self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
         self.price_in_state = True
         self.energy_in_state = True
 
