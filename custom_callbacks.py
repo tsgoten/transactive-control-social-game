@@ -23,6 +23,7 @@ class CustomCallbacks(DefaultCallbacks):
         self.env_id = env_id
         self.log_vals = {k: [] for k in self.cols}
         self.unwrap_env = unwrap_env
+        self.steps_since_save = 0
         print("initialized Custom Callbacks")
 
     def save(self):
@@ -211,6 +212,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
 
 
     def save(self):
+        pdb.set_trace()
         log_df=pd.DataFrame(data=self.log_vals)
         log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
         for v in self.log_vals.values():
@@ -283,6 +285,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
             env = base_env
 
         for agent_key in self.agent_keys:
+            episode.custom_metrics[f"{agent_key}/goal"] = np.mean(episode.user_data[f"{agent_key}/goal"])
             episode.custom_metrics[f"{agent_key}/energy_reward"] = np.mean(episode.user_data[f"{agent_key}/energy_reward"])
             episode.custom_metrics[f"{agent_key}/energy_cost"] = np.mean(episode.user_data[f"{agent_key}/energy_cost"])
 

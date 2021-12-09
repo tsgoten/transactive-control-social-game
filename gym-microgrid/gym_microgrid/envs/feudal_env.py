@@ -31,6 +31,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_costs["higher_level_agent"] = 0
         self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_goals["higher_level_agent"] = 0
         
     def reset(self):
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -38,6 +39,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_costs["higher_level_agent"] = 0
         self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_goals["higher_level_agent"] = 0
         ret = self.lower_level_env._get_observation()
         self.current_goals = np.zeros(5)
         return {"higher_level_agent": ret}
@@ -82,6 +84,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         for i in range(5):
             self.last_goals["lower_level_agent_{}".format(i)] = self.current_goals[i]
 
+        self.last_goals["higher_level_agent"] = 0
         rew = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
 
         done = {"__all__": False}

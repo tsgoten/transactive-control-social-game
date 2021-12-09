@@ -63,7 +63,7 @@ parser.add_argument(
     "--num_steps",
     help="Number of timesteps to train algo",
     type=int,
-    default=1000,
+    default=50000,
 )
 parser.add_argument(
     "--energy_in_state",
