@@ -17,7 +17,7 @@ from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
 
 
-class FeudalSocialGameHourwise(MultiAgentSocialGameEnv):
+class FeudalSocialGameHourwise(MultiAgentEnv):
     def __init__(self, env_config):
         super().__init__(env_config)
         self.lower_level_env = FeudalSocialGameLowerHourEnv(env_config)
@@ -101,6 +101,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
             Action Space for environment based on action_space_str
         """
 
+        print("initialized lower level agent observation space")
         dim = 3
         return spaces.Box(low=-np.inf, high=np.inf, shape=(dim,), dtype=np.float32)
 
