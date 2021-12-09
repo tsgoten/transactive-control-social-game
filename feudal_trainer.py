@@ -63,7 +63,7 @@ parser.add_argument(
     "--num_steps",
     help="Number of timesteps to train algo",
     type=int,
-    default=1000,
+    default=50000,
 )
 parser.add_argument(
     "--energy_in_state",
@@ -132,7 +132,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=10000
+    default=100
 )
 parser.add_argument(
     "--bin_observation_space",
