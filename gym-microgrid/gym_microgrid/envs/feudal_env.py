@@ -53,11 +53,16 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         return np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
 
     def _high_level_step(self, action):
+        print("higher level action")
+        print(action)
         env_obs = self.lower_level_env._get_observation()
         
         obs = {"lower_level_agent_{}".format(i): np.concatenate((env_obs[2*i:(2*i + 1)], [action[i]])) for i in range(5)}
 
         ## previous goals 
+
+        self.current_goals = self._upper_level_action_to_goal(action)
+
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
             env_obs[(10 + 2*i) : (10 + (2*i + 1))], 
             self.current_goals[i]
@@ -65,7 +70,6 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         done = {"__all__": False}
 
-        self.current_goals = self._upper_level_action_to_goal(action)
         print("higher level obs")
         print(obs)
         return obs, rew, done, {}

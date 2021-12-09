@@ -160,7 +160,7 @@ parser.add_argument(
 if __name__== "__main__":
     args = parser.parse_args()
 
-    upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (20,), dtype = np.float32)
+    upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (10,), dtype = np.float32)
     upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (5,), dtype = np.float32)
     lower_level_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32)
     lower_level_action_space = spaces.Box(low = -1, high = 1, shape = (2,), dtype = np.float32)
