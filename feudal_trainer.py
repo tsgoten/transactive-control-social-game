@@ -193,7 +193,6 @@ if __name__== "__main__":
         log_path=out_path, 
         save_interval=args.bulk_log_interval, 
         obs_dim=20, 
-        num_agents=6,
         agent_keys = agent_keys)
 
     config["callbacks"] = lambda: callbacks
