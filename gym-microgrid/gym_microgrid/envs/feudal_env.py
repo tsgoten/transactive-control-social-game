@@ -33,7 +33,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
             print("executing higher level step")
-            return self._high_level_step(action_dict["high_level_agent"])
+            return self._high_level_step(action_dict["higher_level_agent"])
         else:
             print("executing lower level step")
             return self._low_level_step(np.concatenate(
@@ -57,14 +57,14 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         print(action)
         env_obs = self.lower_level_env._get_observation()
         
-        obs = {"lower_level_agent_{}".format(i): np.concatenate((env_obs[2*i:(2*i + 1)], [action[i]])) for i in range(5)}
+        obs = {"lower_level_agent_{}".format(i): np.concatenate((env_obs[2*i:(2*i + 2)], [action[i]])) for i in range(5)}
 
         ## previous goals 
 
         self.current_goals = self._upper_level_action_to_goal(action)
 
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
-            env_obs[(10 + 2*i) : (10 + (2*i + 1))], 
+            env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
             self.current_goals[i]
         ) for i in range(5)}
 
@@ -78,8 +78,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action)
         
         print("lower level obs")
-        obs = {"upper_level_agent": f_obs}
-        rew = {"upper_level_agent": f_rew}
+        obs = {"higher_level_agent": f_obs}
+        rew = {"higher_level_agent": f_rew}
         done = {"__all__": f_done}
 
         print(obs)
