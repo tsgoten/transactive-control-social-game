@@ -53,12 +53,4 @@ else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
 fi
 
-cd gym-microgrid/
-pip install -e .
-cd ..
-
-pip install tensorflow
-pip install tensorflow-probability
-pip install tensorflow-gpu
-
-singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "python feudal_trainer.py -w"
+singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "cd gym-microgrid/ && pip install -e . && cd .. && pip install tensorflow && pip install tensorflow-probability && pip install tensorflow-gpu && python feudal_trainer.py -w"
