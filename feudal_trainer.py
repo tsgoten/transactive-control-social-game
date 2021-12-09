@@ -193,7 +193,7 @@ if __name__== "__main__":
     }
 
     agent_keys = [f"lower_level_agent_{i}" for i in range(5)]
-    agent_keys += "higher_level_agent"
+    agent_keys += ["higher_level_agent"]
 
     out_path = os.path.join(args.log_path, "bulk_data.h5")
     callbacks = HierarchicalCallbacks(

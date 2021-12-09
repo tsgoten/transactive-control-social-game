@@ -186,7 +186,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
         super().__init__()
         self.log_path = log_path
         self.save_interval = save_interval
-        self.cols = ["energy_reward", "energy_cost"]
+        self.cols = ["energy_reward", "energy_cost", "goal"]
         for i in range(obs_dim):
             self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
@@ -263,7 +263,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
                 goal = env.last_goals[agent_key]
                 episode.user_data[f"{agent_key}/goal"].append(goal)
                 episode.hist_data[f"{agent_key}/goal"].append(goal)
-                self.log_vals[f"{agent_key}/goal"].append(energy_cost)
+                self.log_vals[f"{agent_key}/goal"].append(goal)
             else:
                 self.log_vals[f"{agent_key}/goal"].append(np.nan)
 
