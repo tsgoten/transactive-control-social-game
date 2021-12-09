@@ -53,7 +53,10 @@ else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
 fi
 
-pip install -e gym_microgrid/. 
+cd gym-microgrid/
+pip install -e .
+cd ..
+
 pip install tensorflow
 pip install tensorflow-probability
 pip install tensorflow-gpu
