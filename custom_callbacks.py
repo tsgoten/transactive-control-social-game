@@ -203,6 +203,10 @@ class HierarchicalCallbacks(DefaultCallbacks):
         self.steps_since_save = 0
         
         self.unwrap_env = unwrap_env
+
+        print("checking agent_keys")
+        print(agent_keys)
+
         print(f"Initialized MULTI Agent Custom Callbacks for {self.num_agents} Agents.")
 
 
@@ -252,6 +256,14 @@ class HierarchicalCallbacks(DefaultCallbacks):
                 self.log_vals[f"{agent_key}/energy_cost"].append(energy_cost)
             else:
                 self.log_vals[f"{agent_key}/energy_cost"].append(np.nan)
+
+            if agent_key in env.last_goals:
+                goal = env.last_energy_goals[agent_key]
+                episode.user_data[f"{agent_key}/goal"].append(goal)
+                episode.hist_data[f"{agent_key}/goal"].append(goal)
+                self.log_vals[f"{agent_key}/goal"].append(energy_cost)
+            else:
+                self.log_vals[f"{agent_key}/goal"].append(np.nan)
 
         # TODO: Implement observations. Take a look at CustomCallbacks.
         self.steps_since_save += 1
