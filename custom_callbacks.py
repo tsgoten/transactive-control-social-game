@@ -224,6 +224,8 @@ class HierarchicalCallbacks(DefaultCallbacks):
                          episode: MultiAgentEpisode, env_index: int, **kwargs):
 
         for agent_key in self.agent_keys:
+            episode.user_data[f"{agent_key}/goal"] = []
+            episode.hist_data[f"{agent_key}/goal"] = []
             episode.user_data[f"{agent_key}/energy_reward"] = []
             episode.hist_data[f"{agent_key}/energy_reward"] = []
             episode.user_data[f"{agent_key}/energy_cost"] = []
