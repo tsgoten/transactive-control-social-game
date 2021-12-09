@@ -17,8 +17,8 @@ class CustomCallbacks(DefaultCallbacks):
         self.log_path=log_path
         self.save_interval=save_interval
         self.cols = ["step", "energy_reward", "smirl_reward", "energy_cost"]
-        for i in range(obs_dim):
-            self.cols.append("observation_" + str(i))
+        # for i in range(obs_dim):
+        #     self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
         self.env_id = env_id
         self.log_vals = {k: [] for k in self.cols}
@@ -29,7 +29,8 @@ class CustomCallbacks(DefaultCallbacks):
     def save(self):
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+        # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)
         for v in self.log_vals.values():
             v.clear()
 
@@ -189,8 +190,8 @@ class HierarchicalCallbacks(DefaultCallbacks):
         self.log_path = log_path
         self.save_interval = save_interval
         self.cols = ["energy_reward", "energy_cost", "goal"]
-        for i in range(obs_dim):
-            self.cols.append("observation_" + str(i))
+        # for i in range(obs_dim):
+        #     self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
         self.env_id = env_id
 
@@ -216,7 +217,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
         pdb.set_trace()
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
 
