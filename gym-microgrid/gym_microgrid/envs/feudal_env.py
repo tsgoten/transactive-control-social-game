@@ -146,6 +146,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
 
 
     def _get_observation(self):
+        print("get_observation in the lower_level_env")
         self.prev_price = self.prices[ (self.day - 1) % 365]
         next_price = self.prices[self.day]
 
@@ -160,6 +161,6 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
             next_observation = np.concatenate((next_observation, next_price))
 
         if self.energy_in_state:
-            next_observation = np.concatenate((next_observation, self.prev_energy))
+            next_observation = np.concatenate((next_observation, self.prev_energy), dtype=np.float32)
 
         return next_observation
