@@ -10,7 +10,7 @@ import utils
 import os
 
 from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
-from custom_callbacks import MultiAgentCallbacks
+from custom_callbacks import HierarchicalCallbacks
 import pdb
 
 parser = argparse.ArgumentParser()
@@ -185,12 +185,16 @@ if __name__== "__main__":
         "env_config": vars(args)
     }
 
+    agent_keys = [f"lower_level_agent_{i}" for i in range(5)]
+    agent_keys += "higher_level_agent"
+
     out_path = os.path.join(args.log_path, "bulk_data.h5")
-    callbacks = MultiAgentCallbacks(
+    callbacks = HierarchicalCallbacks(
         log_path=out_path, 
         save_interval=args.bulk_log_interval, 
         obs_dim=20, 
-        num_agents=6)
+        num_agents=6,
+        agent_keys = agent_keys)
 
     config["callbacks"] = lambda: callbacks
     logger_creator = utils.custom_logger_creator(args.log_path)
