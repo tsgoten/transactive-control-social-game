@@ -303,10 +303,10 @@ class SocialGameEnv(gym.Env):
                 player_energy = player.get_response(action, day_of_week = None)
 
             #Calculate energy consumption by player and in total (over the office)
-            energy_consumptions[player_name] = player_energy
+            energy_consumptions[player_name] = np.abs(player_energy)
             total_consumption += player_energy
 
-        energy_consumptions["avg"] = total_consumption / self.number_of_participants
+        energy_consumptions["avg"] = np.abs(total_consumption / self.number_of_participants)
         return energy_consumptions
 
     def _get_reward(self, price, energy_consumptions, reward_function = "log_cost_regularized"):
