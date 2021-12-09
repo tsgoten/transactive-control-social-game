@@ -24,12 +24,13 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         #self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
         self.price_in_state = True
         self.energy_in_state = True
+        self.total_iter = 0
+        
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_costs["higher_level_agent"] = 0
         
-
     def reset(self):
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
@@ -82,6 +83,9 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         print("higher level obs")
         print(obs)
+
+        self.total_iter += 1 
+        
         return obs, rew, done, {}
 
     def _low_level_step(self, action): 
