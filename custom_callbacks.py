@@ -27,7 +27,8 @@ class CustomCallbacks(DefaultCallbacks):
         print("initialized Custom Callbacks")
 
     def save(self):
-        log_df=pd.DataFrame(data=self.log_vals)
+        log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
+        log_df=pd.DataFrame(data=log_vals_to_save)
         log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
@@ -213,13 +214,13 @@ class HierarchicalCallbacks(DefaultCallbacks):
 
     def save(self):
         pdb.set_trace()
-        log_df=pd.DataFrame(data=self.log_vals)
+        log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
+        log_df=pd.DataFrame(data=log_vals_to_save)
         log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
 
         self.steps_since_save=0
-
 
     def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
                          policies: Dict[str, Policy],
