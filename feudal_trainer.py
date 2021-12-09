@@ -42,7 +42,7 @@ parser.add_argument(
 parser.add_argument(
     "--gym_env",
     help="feudal or flat",
-    default="feudal"
+    default="feudal",
     choices=["feudal", "socialgame_env"]
 )
 parser.add_argument(
@@ -132,7 +132,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=10000
+    default=100
 )
 parser.add_argument(
     "--bin_observation_space",
@@ -240,10 +240,9 @@ if __name__== "__main__":
         trainer = sac.SACTrainer(
             env=SocialGameEnvRLLib, 
             config=config,
-            logger_creator=logger_creator,
+            logger_creator=logger_creator,)
 
     training_step = 0
-
     while training_step < args.num_steps:
         print("in training loop")
         result = trainer.train()
