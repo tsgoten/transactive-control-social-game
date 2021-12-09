@@ -175,7 +175,14 @@ class CustomCallbacks(DefaultCallbacks):
 
 
 class HierarchicalCallbacks(DefaultCallbacks):
-    def __init__(self, log_path, save_interval, obs_dim=10, env_id=0, agent_keys=None, unwrap_env=True):
+    def __init__(
+            self, 
+            log_path, 
+            save_interval, 
+            obs_dim=10, 
+            env_id=0, 
+            agent_keys=None, 
+            unwrap_env=True):
         super().__init__()
         self.log_path = log_path
         self.save_interval = save_interval
@@ -193,7 +200,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
                 self.log_vals[f"{agent_key}/{col}"] = []
         self.log_vals["step"] = []
 
-        self.steps_since_save=0
+        self.steps_since_save = 0
         
         self.unwrap_env = unwrap_env
         print(f"Initialized MULTI Agent Custom Callbacks for {self.num_agents} Agents.")

@@ -160,6 +160,11 @@ parser.add_argument(
 if __name__== "__main__":
     args = parser.parse_args()
 
+    if args.wandb:
+        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
+        wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
+        wandb.config.update(args)
+
     upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (20,), dtype = np.float32)
     upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (5,), dtype = np.float32)
     lower_level_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32)

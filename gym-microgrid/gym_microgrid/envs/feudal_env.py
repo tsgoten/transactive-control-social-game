@@ -42,10 +42,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
     
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
-            print("executing higher level step")
             return self._high_level_step(action_dict["higher_level_agent"])
         else:
-            print("executing lower level step")
             return self._low_level_step(np.concatenate(
                 [action_dict["lower_level_agent_{}".format(i)] for i in range(5)]))
 
