@@ -13,6 +13,8 @@ from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
 from custom_callbacks import HierarchicalCallbacks
 import pdb
 
+import wandb
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
