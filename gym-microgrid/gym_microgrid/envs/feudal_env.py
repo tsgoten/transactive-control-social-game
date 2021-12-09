@@ -183,11 +183,11 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
 
         energy_consumptions = self._simulate_humans(points)
         self.energy_consumptions = energy_consumptions
-        self.prev_energy = energy_consumptions["avg"]
+        self.prev_energy = np.abs(energy_consumptions["avg"]) ## TODO: should be more rigorous about checking negative energy!
         reward = self._get_reward(prev_price, energy_consumptions, reward_function = self.reward_function)
         print("reward in lower step")
         print(reward)
-        self.last_energy_cost = np.sum(prev_price * energy_consumptions["avg"])
+        self.last_energy_cost = np.sum(prev_price * np.abs(energy_consumptions["avg"]))
         print("self.last_energy_cost in lower step")
         print(self.last_energy_cost)
         observation = self._get_observation()
