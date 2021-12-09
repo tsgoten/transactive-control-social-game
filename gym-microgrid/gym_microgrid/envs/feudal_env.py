@@ -19,7 +19,7 @@ from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
 
 class FeudalSocialGameHourwise(MultiAgentEnv):
     def __init__(self, env_config):
-        super().__init__(env_config)
+        # super().__init__(env_config)
         self.lower_level_env = FeudalSocialGameLowerHourEnv(env_config)
         #self.observation_space = self.lower_level_env._create_observation_space()
         #self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
@@ -27,7 +27,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.energy_in_state = True
 
     def reset(self):
-        ret = self._get_observation()
+        ret = self.lower_level_env._get_observation()
         self.current_goals = np.zeros(5)
         return {"higher_level_agent": ret}
     
@@ -154,6 +154,8 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
 
         next_observation = np.array([])
 
+        self.price_in_state = self.energy_in_state = True
+        
         if self.price_in_state:
             next_observation = np.concatenate((next_observation, next_price))
 
