@@ -129,12 +129,12 @@ class CustomCallbacks(DefaultCallbacks):
                 self.log_vals["energy_cost"].append(np.nan)
 
             obs = env._get_observation()
-            if obs is not None:
-                for i, k in enumerate(obs.flatten()):
-                    self.log_vals["observation_" + str(i)].append(k)
-            else:
-                for i in range(obs_dim):
-                    self.log_vals["observation_" + str(i)].append(np.nan)
+            # if obs is not None:
+            #     for i, k in enumerate(obs.flatten()):
+            #         self.log_vals["observation_" + str(i)].append(k)
+            # else:
+            #     for i in range(obs_dim):
+            #         self.log_vals["observation_" + str(i)].append(np.nan)
 
             self.steps_since_save += 1
             if self.steps_since_save == self.save_interval:
