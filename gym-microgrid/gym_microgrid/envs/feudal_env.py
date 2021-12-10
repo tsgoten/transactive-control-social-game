@@ -62,7 +62,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
     def _compute_lower_level_rewards(self, energy_tuple, goal):
         goal_tuple = [goal, goal]
-        return np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
+        return  - np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
 
     def _compute_lower_level_costs(self, energy_tuple, price_tuple):
         total_agent_energy_cost = np.sum(energy_tuple * price_tuple)
