@@ -248,7 +248,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
     """
 
     def __init__(self, env_config):
-        super().__init__(self)
+        super().__init__()
         self.upper_level_aggregator_buyprice = np.zeros(24)
         self.upper_level_aggregator_sellprice = np.zeros(24)
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
