@@ -374,7 +374,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                 buyprice_grid_tomorrow,
                 sell_price_grid_tomorrow,
                 [
-                    self.lower_level_agent_dict["lower_level_agent_{i}"].prev_energy 
+                    self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy 
                     for i in range(6)
                 ] ## how to collapse this dimension? 
 
