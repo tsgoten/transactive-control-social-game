@@ -259,10 +259,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.last_goals["higher_level_agent"] = 0
 
         self.day = 0
-        self.days_of_week = [0, 1, 2, 3, 4]
-        self.day_of_week_flag = day_of_week
-        self.day_of_week = self.days_of_week[self.day % 5]
-        self.day_length = 24
 
         #Create Observation Space (aka State Space)
         self.observation_space = self._create_observation_space()
@@ -276,6 +272,26 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
             for i in range(6)
         }
+    
+    def _create_observation_space(self):
+        """
+        Purpose: Returns the observation space.
+        State space includes:
+            Previous day's net total energy consumption (24 dim)
+            Future (current) day's renewable generation prediction (24 dim)
+            Future (current) day's ToU buy prices from utility (24 dim)
+        
+        Args:
+            None
+
+        Returns:
+            State Space for environment based on action_space_str
+        """
+
+        return spaces.Box(
+            low=-np.inf, high=np.inf, 
+            shape=(24 * (2 + 2 + 6),), 
+            dtype=np.float32)
 
     def _get_generation(self):
         """
