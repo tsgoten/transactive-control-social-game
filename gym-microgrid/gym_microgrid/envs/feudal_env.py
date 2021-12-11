@@ -273,6 +273,36 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             for i in range(6)
         }
     
+
+    def _get_prices(self):
+        """
+        Purpose: Get grid price signals for the entire year (PG&E commercial rates)
+
+        Args:
+            None
+
+        Returns: Two arrays containing 365 price signals, where array[day_number] = grid_price for day_number 
+        One each for buyprice and sellprice: sellprice set to be a fraction of buyprice
+
+        """
+
+        buy_prices = []
+        sell_prices = []
+
+
+        # Read PG&E price from CSV file. Index starts at 5 am on Jan 1, make appropriate adjustments. For year 2012: it is a leap year
+        # price = pd.read_csv('/Users/utkarshapets/Documents/Research/Optimisation attempts/building_data.csv')[['Price( $ per kWh)']]
+        price = np.squeeze(pd.read_csv('gym-microgrid/gym_microgrid/envs/building_data.csv')[['Price( $ per kWh)']].values)
+
+        for day in range(0, 365):
+            buyprice = price[day*self.day_length+19 : day*self.day_length+19+24]
+            sellprice = 0.6*buyprice
+            buy_prices.append(buyprice)
+            sell_prices.append(sellprice)
+
+        return buy_prices, sell_prices
+        
+
     def _create_observation_space(self):
         """
         Purpose: Returns the observation space.
