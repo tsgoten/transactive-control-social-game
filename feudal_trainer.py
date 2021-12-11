@@ -2,6 +2,7 @@ import argparse
 from gym import spaces
 
 import numpy as np
+import pandas as pd 
 import ray
 from ray import tune
 import ray.rllib.agents.sac.sac as sac
@@ -174,7 +175,7 @@ if __name__== "__main__":
         wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
         wandb.config.update(args)
 
-    out_path = os.path.join(args.log_path, "bulk_data.h5")
+    out_path = os.path.join(args.log_path, str(pd.datetime.today()) + "_bulk_data.h5")
 
     if args.gym_env == "feudal":
 
