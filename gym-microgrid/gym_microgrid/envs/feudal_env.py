@@ -259,6 +259,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.last_goals["higher_level_agent"] = 0
 
         self.day = 0
+        self.day_length = 24 
 
         #Create Observation Space (aka State Space)
         self.observation_space = self._create_observation_space()
@@ -301,7 +302,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             sell_prices.append(sellprice)
 
         return buy_prices, sell_prices
-        
+
 
     def _create_observation_space(self):
         """
