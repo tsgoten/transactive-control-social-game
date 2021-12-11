@@ -17,6 +17,7 @@ from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from gym_microgrid.envs.microgrid_env import MicrogridEnvRLLib
 from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
 
+import pdb
 
 class FeudalSocialGameHourwise(MultiAgentEnv):
     def __init__(self, env_config):
@@ -463,6 +464,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         if check:
             buyprice_grid = self.buyprices_grid[self.day]
             sellprice_grid = self.sellprices_grid[self.day]
+            pdb.set_trace()
             assert grid_buy_price == buyprice_grid
             assert grid_sell_price == sellprice_grid
 
