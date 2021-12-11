@@ -369,7 +369,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
         generation_tomorrow += generation_tomorrow_nonzero * noise # Add in Gaussian noise when gen in non zero
 
-        return np.concatenate(
+        return np.hstack(
             (
                 buyprice_grid_tomorrow,
                 sell_price_grid_tomorrow,
