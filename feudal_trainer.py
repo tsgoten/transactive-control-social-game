@@ -10,9 +10,9 @@ import ray.rllib.agents.sac.sac as sac
 import utils
 import os
 
-from gym_microgrid.envs.feudal_env import FeudalSocialGameHourwise
+from gym_microgrid.envs.feudal_env import (FeudalSocialGameHourwise, FeudalMicrogridEnvHigherAggregator)
 from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
-from custom_callbacks import (HierarchicalCallbacks, CustomCallbacks)
+from custom_callbacks import (HierarchicalCallbacks, CustomCallbacks, HierarchicalMultigridCallbacks)
 import pdb
 
 import wandb
@@ -177,7 +177,7 @@ if __name__== "__main__":
 
     out_path = os.path.join(args.log_path, str(pd.datetime.today()) + "_bulk_data.h5")
 
-    if args.gym_env == "feudal":
+    if args.gym_env == "feudal_timewise":
 
         upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (20,), dtype = np.float32)
         upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (5,), dtype = np.float32)
@@ -219,6 +219,51 @@ if __name__== "__main__":
 
         trainer = sac.SACTrainer(
             env=FeudalSocialGameHourwise, 
+            config=config,
+            logger_creator=logger_creator,
+        )
+
+    elif args.gym_env == "feudal_spatial":
+        upper_level_obs_space = spaces.Box(low = -np.inf, high = np.inf, shape = (24 * (2 + 2 + 6),), dtype = np.float32)
+        upper_level_action_space = spaces.Box(low = -1, high = 1, shape = (48,), dtype = np.float32)
+        lower_level_obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(24 * 5,), dtype=np.float32)
+        lower_level_action_space = spaces.Box(low = -1, high = 1, shape = (48,), dtype = np.float32)
+
+        policies = {"higher_level_agent": (
+            None, upper_level_obs_space, 
+            upper_level_action_space, {"gamma": 1})}
+        for i in range(6):
+            policies["lower_level_agent_{}".format(i)] = (
+                None, lower_level_obs_space, 
+                lower_level_action_space, {"gamma": 1})
+
+        def policy_mapping_fn(agent_id, *args, **kwargs):
+            return agent_id
+
+        config = {
+            "env": FeudalMicrogridEnvHigherAggregator,
+            "multiagent": {
+                "policies": policies,
+                "policy_mapping_fn": policy_mapping_fn,
+            },
+            "env_config": vars(args)
+        }
+
+        agent_keys = [f"lower_level_agent_{i}" for i in range(5)]
+        agent_keys += ["higher_level_agent"]
+
+
+        callbacks = HierarchicalMultigridCallbacks(
+            log_path=out_path, 
+            save_interval=args.bulk_log_interval, 
+            obs_dim=20,  ## <<- this doesn't effect things 
+            agent_keys = agent_keys)
+
+        config["callbacks"] = lambda: callbacks
+        logger_creator = utils.custom_logger_creator(args.log_path)
+
+        trainer = sac.SACTrainer(
+            env=FeudalMicrogridEnvHigherAggregator, 
             config=config,
             logger_creator=logger_creator,
         )
