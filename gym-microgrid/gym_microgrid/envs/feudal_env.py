@@ -225,7 +225,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
 
 
 
-class FeudalMicrogridEnvHigherAggregator(MicrogridEnvRLLib):
+class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
     """
     Higher level agent 
 
@@ -464,7 +464,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         if check:
             buyprice_grid = self.buyprices_grid[self.day]
             sellprice_grid = self.sellprices_grid[self.day]
-            pdb.set_trace()
+            # pdb.set_trace()
             assert grid_buy_price == buyprice_grid
             assert grid_sell_price == sellprice_grid
 
