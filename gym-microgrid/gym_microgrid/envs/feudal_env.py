@@ -15,7 +15,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from gym_microgrid.envs.microgrid_env import MicrogridEnvRLLib
-from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
+from gym_microgrid.envs.multiagent_env import MultiAgentMicrogridEnv
 
 import pdb
 
@@ -248,7 +248,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
     """
 
     def __init__(self, env_config):
-        super().__init__()
+        super().__init__(self, env_config)
         self.upper_level_aggregator_buyprice = np.zeros(24)
         self.upper_level_aggregator_sellprice = np.zeros(24)
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -258,11 +258,47 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_goals["higher_level_agent"] = 0
 
+        self.day = 0
+        self.days_of_week = [0, 1, 2, 3, 4]
+        self.day_of_week_flag = day_of_week
+        self.day_of_week = self.days_of_week[self.day % 5]
+        self.day_length = 24
+
+        #Create Observation Space (aka State Space)
+        self.observation_space = self._create_observation_space()
+
+        self.buyprices_grid, self.sellprices_grid = self._get_prices()
+        # self.prices = self.buyprices_grid #Initialise to buyprices_grid
+        self.generation = self._get_generation()
+
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
             FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
             for i in range(6)
         }
+
+    def _get_generation(self):
+        """
+        Purpose: Get solar energy predictions for the entire year 
+
+        Args:
+            None
+
+        Returns: Array containing solar generation predictions, where array[day_number] = renewable prediction for day_number 
+        """
+
+        yearlonggeneration = []
+
+        # Read renewable generation from CSV file. Index starts at 5 am on Jan 1, make appropriate adjustments. For year 2012: it is a leap year
+        # generation = pd.read_csv('/Users/utkarshapets/Documents/Research/Optimisation attempts/building_data.csv')[['PV (W)']]
+        generation = np.squeeze(pd.read_csv('./gym-microgrid/gym_microgrid/envs/building_data.csv')[['PV (W)']].values)
+        for day in range(0, 365):
+            yearlonggeneration.append(
+                generation[day*self.day_length+19 : day*self.day_length+19+24]
+            )
+               
+        return np.array(yearlonggeneration)
+
     
     def reset(self):
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
