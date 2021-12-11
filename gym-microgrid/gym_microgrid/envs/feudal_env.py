@@ -1,4 +1,3 @@
-from _typeshed import IdentityFunction
 import gym
 from gym import spaces
 
