@@ -342,10 +342,10 @@ class FeudalMicrogridEnvHigherAggregator(MicrogridEnvRLLib):
             (obs[f"lower_level_agent_{agent}"], 
             rew[f"lower_level_agent_{agent}"],
             done[f"lower_level_agent_{agent}"],
-            info[f"lower_level_agent_{agent}"] = (
+            info[f"lower_level_agent_{agent}"]) = (
                 self.lower_level_agent_dict[agent].step(
                     action[f"lower_level_agent_{agent}"]) # TODO: is it stored like this? 
-            ))
+            )
 
         higher_level_obs = self._get_observation()
         obs.update({"higher_level_agent": higher_level_obs})
@@ -465,7 +465,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             buyprice_grid = self.buyprices_grid[self.day]
             sellprice_grid = self.sellprices_grid[self.day]
             assert grid_buy_price == buyprice_grid
-            assert grid_sell_price == grid_sell_price
+            assert grid_sell_price == sellprice_grid
 
         higher_aggregator_buy_price = obs[48:72]
         higher_aggregator_sell_price = obs[72:96]
