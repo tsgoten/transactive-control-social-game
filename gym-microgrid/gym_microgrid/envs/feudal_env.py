@@ -377,8 +377,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1) % 365] 
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
-        pdb.set_trace()
-
         obs =  np.append(
             np.hstack(
                 (
@@ -390,6 +388,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                         for i in range(6)
                     ] 
                 ))
+
+        pdb.set_trace()
 
         return obs
 
@@ -524,6 +524,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
     def __init__(self, env_config, battery_pv_scenario):
         super().__init__(env_config)
+        self.prev_energy = np.zeros(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
         self.reward_function = "profit_maximizing"
