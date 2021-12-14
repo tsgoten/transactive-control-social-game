@@ -379,7 +379,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
        
-        return np.append(
+        import pdb
+        pdb.set_trace()       
+        obs =  np.append(
             np.hstack(
                 (
                     buyprice_grid_tomorrow,
@@ -390,6 +392,10 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                         for i in range(6)
                     ] 
                 ))
+
+        print("obs shape")
+        print(obs.shape)
+        return obs
 
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
