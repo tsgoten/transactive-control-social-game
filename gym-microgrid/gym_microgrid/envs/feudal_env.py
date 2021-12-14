@@ -384,7 +384,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                     sell_price_grid_tomorrow,)), 
             np.array(
                     [
-                        self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy 
+                        self.lower_level_agent_dict[
+                            f"lower_level_agent_{i}"].prev_energy 
                         for i in range(6)
                     ] 
                 ))
@@ -411,6 +412,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.higher_level_aggregator_sellprice = action[24:48]
         obs = {
             f"lower_level_agent_{i}": np.concatenate((
+                self.lower_level_agent_dict[i].generation_tomorrow,
                 higher_level_obs[:24], # buyprice_grid_tomorrow
                 higher_level_obs[24:48], # sellprice_grid_tomorrow
                 self.higher_level_aggregator_buyprice,
@@ -530,6 +532,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.reward_function = "profit_maximizing"
         self.higher_level_sell_price = np.zeros(24)
         self.higher_level_buy_price = np.zeros(24)
+        self.generation_tomorrow = np.zeros(24)
     
     def _create_observation_space(self):
         dim = 24 + (24 + 24) + (24 + 24) + 24
@@ -551,6 +554,8 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
         generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
         generation_tomorrow += generation_tomorrow_nonzero* noise # Add in Gaussian noise when gen in non zero
+
+        self.generation_tomorrow
 
         return np.concatenate(
             (
