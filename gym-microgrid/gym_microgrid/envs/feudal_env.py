@@ -56,7 +56,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         # yesterdays energy: 10 dim, lower_ind, yesterday_energy[(lower_ind*2):(lower_ind*2+1)]
 
-    def _upper_level_action_to_goal(self, action):
+    def _higher_level_action_to_goal(self, action):
         """
         Purpose: map -1 to 1 --> 0 to 500
         """
@@ -116,7 +116,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         ## previous goals 
 
-        self.current_goals = self._upper_level_action_to_goal(action)
+        self.current_goals = self._higher_level_action_to_goal(action)
         for i in range(5):
             self.last_goals["lower_level_agent_{}".format(i)] = self.current_goals[i]
 
@@ -199,8 +199,8 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         self.total_demand = total_demand
         return
     
-    def set_upper_level_command(self, upper_level_command):
-        self.upper_level_command = upper_level_command
+    def set_higher_level_command(self, higher_level_command):
+        self.higher_level_command = higher_level_command
         return
 
 
@@ -285,8 +285,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
     def __init__(self, env_config):
         super().__init__()
-        self.upper_level_aggregator_buyprice = np.zeros(24)
-        self.upper_level_aggregator_sellprice = np.zeros(24)
+        self.higher_level_aggregator_buyprice = np.zeros(24)
+        self.higher_level_aggregator_sellprice = np.zeros(24)
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -360,28 +360,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             shape=(24 * (2 + 2 + 6),), 
             dtype=np.float32)
 
-    def _get_generation(self):
-        """
-        Purpose: Get solar energy predictions for the entire year 
-
-        Args:
-            None
-
-        Returns: Array containing solar generation predictions, where array[day_number] = renewable prediction for day_number 
-        """
-
-        yearlonggeneration = []
-
-        # Read renewable generation from CSV file. Index starts at 5 am on Jan 1, make appropriate adjustments. For year 2012: it is a leap year
-        # generation = pd.read_csv('/Users/utkarshapets/Documents/Research/Optimisation attempts/building_data.csv')[['PV (W)']]
-        generation = np.squeeze(pd.read_csv('./gym-microgrid/gym_microgrid/envs/building_data.csv')[['PV (W)']].values)
-        for day in range(0, 365):
-            yearlonggeneration.append(
-                generation[day*self.day_length+19 : day*self.day_length+19+24]
-            )
-               
-        return np.array(yearlonggeneration)
-
     
     def reset(self):
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -431,18 +409,28 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         # set observation: 
         higher_level_obs = self._get_observation()
-        self.upper_level_aggregator_buyprice = action[:24] # TODO: dict?
-        self.upper_level_aggregator_sellprice = action[24:48]
+        self.higher_level_aggregator_buyprice = action[:24] # TODO: dict?
+        self.higher_level_aggregator_sellprice = action[24:48]
         obs = {
             f"lower_level_agent_{i}": np.concatenate((
                 higher_level_obs[:24], # buyprice_grid_tomorrow
                 higher_level_obs[24:48], # sellprice_grid_tomorrow
-                self.upper_level_aggregator_buyprice,
-                self.upper_level_aggregator_sellprice,
+                self.higher_level_aggregator_buyprice,
+                self.higher_level_aggregator_sellprice,
                 self.lower_level_agent_dict[i].prev_energy
             ))
             for i in range(6)
         }
+
+        for agent in range(6):
+            self.lower_level_agent_dict[
+                f"lower_level_agent_{agent}"].higher_buy_price = (
+                    self.higher_level_aggregator_buyprice
+                )
+            self.lower_level_agent_dict[
+                f"lower_level_agent_{agent}"].higher_sell_price = (
+                    self.higher_level_aggregator_sellprice
+                )
 
         rew = {f"lower_level_agent_{i}": 0 for i in range(6)}
         done = {"__all__": False}
@@ -457,7 +445,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         for agent in range(6):
             self.lower_level_agent_dict[f"lower_level_agent_{agent}"].day = self.day
-
             (obs[f"lower_level_agent_{agent}"], 
             rew[f"lower_level_agent_{agent}"],
             done[f"lower_level_agent_{agent}"],
@@ -477,8 +464,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         higher_level_profit = self._calculate_higher_level_reward(
             higher_level_obs[:24], #buyprice_grid_tomorrow
             higher_level_obs[24:48],
-            self.upper_level_aggregator_buyprice,
-            self.upper_level_aggregator_sellprice,
+            self.higher_level_aggregator_buyprice,
+            self.higher_level_aggregator_sellprice,
             microgrid_energy_consumptions
         )
 
@@ -501,8 +488,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self, 
         buyprice_grid, 
         sellprice_grid, 
-        upper_aggregator_buyprice, 
-        upper_aggregator_sellprice, 
+        higher_aggregator_buyprice, 
+        higher_aggregator_sellprice, 
         microgrids_energy_consumptions
         ):
 
@@ -513,8 +500,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         for prosumerName in microgrids_energy_consumptions:
             money_from_prosumers += (
-                (np.dot(np.maximum(0, microgrids_energy_consumptions[prosumerName]), upper_aggregator_buyprice) + 
-                np.dot(np.minimum(0, microgrids_energy_consumptions[prosumerName]), upper_aggregator_sellprice))
+                (np.dot(np.maximum(0, microgrids_energy_consumptions[prosumerName]), higher_aggregator_buyprice) + 
+                np.dot(np.minimum(0, microgrids_energy_consumptions[prosumerName]), higher_aggregator_sellprice))
             )
 
         total_reward = money_from_prosumers - money_to_utility
@@ -529,7 +516,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
     state space: (grid buy and sell prices, aggregator buy and sell prices, energy_demand_grid_yesterday)
     action: (lower_aggregator_buy_price, lower_aggregator_sell_price) # 48-d vector 
 
-    optimal_external_buy_price = max (upper_level_buy_price, utility_buy_price)
+    optimal_external_buy_price = max (higher_level_buy_price, utility_buy_price)
     optimal_external_sell_price = max( upperlevel_sell_price, utility_sell_price)
 
     reward: (buy_price^T .negative hours + optimal_external_sell_price ^T . positive_hours) - (sell_price^T.positive hours + optimal_external_buy_price^T . negative_hours)
@@ -540,15 +527,39 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
         self.reward_function = "profit_maximizing"
+        self.higher_level_sell_price = np.zeros(24)
+        self.higher_level_buy_price = np.zeros(24)
     
     def _create_observation_space(self):
-        dim = (24 + 24) + (24 + 24) + 24
+        dim = 24 + (24 + 24) + (24 + 24) + 24
         return spaces.Box(
             low = -np.inf, 
             high = np.inf, 
             shape = (dim,), 
             dtype = np.float32
             )
+
+
+    def _get_observation(self):
+    
+        prev_energy = self.prev_energy
+        generation_tomorrow = self.generation[(self.day + 1)%365] 
+        buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1)%365] 
+        sellprice_grid_tomorrow = self.sellprices_grid[self.day]
+
+        noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
+        generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
+        generation_tomorrow += generation_tomorrow_nonzero* noise # Add in Gaussian noise when gen in non zero
+
+        return np.concatenate(
+            (
+                generation_tomorrow, 
+                buyprice_grid_tomorrow,
+                sellprice_grid_tomorrow,
+                self.higher_level_buy_price,
+                self.higher_level_sell_price,
+                prev_energy,)
+            ).astype(np.float32)
 
     def step(self, action):
         """
@@ -558,7 +569,11 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             Action: a lower level aggregator buy and sell price 
         
         Returns:
-            Observation: grid buy, sell; higher agg buy, sell; prev_energy
+            Observation: 
+                generation_tomorrow;
+                grid buy, sell; 
+                higher agg buy, sell; 
+                prev_energy
             Reward, Done, Info: you know the deal
         """ 
 
