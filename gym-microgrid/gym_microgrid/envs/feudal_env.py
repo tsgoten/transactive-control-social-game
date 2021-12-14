@@ -377,11 +377,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1) % 365] 
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
-        noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
-       
-        import pdb
-        pdb.set_trace()    
-
         obs =  np.append(
             np.hstack(
                 (
