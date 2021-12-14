@@ -374,7 +374,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         return {"higher_level_agent": ret}
     
     def _get_observation(self):
-        generation_tomorrow = self.generation[(self.day + 1)%365] 
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1) % 365] 
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
