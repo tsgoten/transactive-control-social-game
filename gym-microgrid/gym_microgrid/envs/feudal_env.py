@@ -405,17 +405,17 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
         generation_tomorrow += generation_tomorrow_nonzero * noise # Add in Gaussian noise when gen in non zero
 
-        return np.hstack(
-            (
-                buyprice_grid_tomorrow,
-                sell_price_grid_tomorrow,
-                [
-                    self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy 
-                    for i in range(6)
-                ] ## how to collapse this dimension? 
-
-            ) # TODO: define self.prev energy as a dict 
-        )
+        return np.append(
+            np.hstack(
+                (
+                    buyprice_grid_tomorrow,
+                    sell_price_grid_tomorrow,)), 
+            np.array(
+                    [
+                        self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy 
+                        for i in range(6)
+                    ] 
+                ))
 
     def step(self, action_dict):
         if "higher_level_agent" in action_dict:
