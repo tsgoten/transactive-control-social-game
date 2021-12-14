@@ -308,6 +308,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
             for i in range(6)
         }
+        print("ended init")
     
 
     def _get_prices(self):
@@ -340,6 +341,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
 
     def _create_observation_space(self):
+        print("observation space function")
         """
         Purpose: Returns the observation space.
         State space includes:
@@ -361,6 +363,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
     
     def reset(self):
+        print("reset")
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -374,6 +377,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         return {"higher_level_agent": ret}
     
     def _get_observation(self):
+        print("_get_observation function")
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1) % 365] 
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
@@ -389,10 +393,11 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                         for i in range(6)
                     ] 
                 ))
-
+        print(obs.shape)
         return obs
 
     def step(self, action_dict):
+        print("general step function")
         if "higher_level_agent" in action_dict:
             return self._high_level_step(action_dict["higher_level_agent"])
         else:
