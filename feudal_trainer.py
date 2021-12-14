@@ -116,6 +116,12 @@ parser.add_argument(
     type=float,
     default=3e-4,
 )
+parser.add_argument(
+    "--lower_reward_function",
+    help="reward function for lower level agent",
+    type=str,
+    default="l2",
+)
 # Logging Arguments
 parser.add_argument(
     "-w",

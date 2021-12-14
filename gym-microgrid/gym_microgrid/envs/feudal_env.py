@@ -34,7 +34,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.last_energy_costs["higher_level_agent"] = 0
         self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_goals["higher_level_agent"] = 0
-        
+        self.lower_level_reward_type = env_config["lower_level_reward_type"]
+
     def reset(self):
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
@@ -62,9 +63,40 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         return (action + 1) * 250
 
 
-    def _compute_lower_level_rewards(self, energy_tuple, goal):
-        goal_tuple = [goal, goal]
-        return  - np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
+
+    def _compute_lower_level_rewards(
+        self, 
+        energy_tuple, 
+        yesterday_energy_tuple,
+        goal, 
+        type = "directional"):
+
+        energy_tuple = np.array(energy_tuple)
+        yesterday_energy_tuple = np.array(yesterday_energy_tuple)
+        goal_tuple = np.repeat(goal/2, 2)
+
+        if type == "directional":
+            energy_diff = energy_tuple - yesterday_energy_tuple
+            num = np.multiply(energy_diff, goal_tuple)
+            denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
+            return  num / denom
+        elif type == "l1":
+            return -np.sum(np.abs(energy_tuple - goal_tuple))
+        elif type == "l2":
+            return  -np.linalg.norm(np.array(energy_tuple) - np.array(goal_tuple))
+        else:
+            raise NotImplementedError("Wrong lower level reward type specified.")
+        """
+        np.abs((e_1 + e_2) - goal) # this is just absolute value
+        norml1((e_1,e_2) - (goal, goal)) 
+        norml1((e_1,e_2) - (goal, goal)) <-- sqrt((e_1 - goal) ^2 + (e_2 - goal)^2)
+        
+        
+        e = f(p, b) 
+            10 hour energy vector e 
+            [e_1, e_2, ..., e_10]
+        """
+
 
     def _compute_lower_level_costs(self, energy_tuple, price_tuple):
         total_agent_energy_cost = np.sum(energy_tuple * price_tuple)
@@ -107,18 +139,22 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         
         env_obs = self.lower_level_env._get_observation()
         
-        obs = {"lower_level_agent_{}".format(i): np.concatenate(   ## TODO: this happens twice? 
-            (
-                env_obs[2*i:(2*i + 2)],
-                env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-                [action[i]]) ### TODO: here action is treated as a goal
-            ) 
-            for i in range(5)}
+        # TODO: this commented out code is left as a test to see if the env is functioning right
+        # obs = {"lower_level_agent_{}".format(i): np.concatenate(   ## TODO: this happens twice? 
+        #     (
+        #         env_obs[2*i:(2*i + 2)],
+        #         env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
+        #         [action[i]]) ### TODO: here action is treated as a goal
+        #     ) 
+        #     for i in range(5)}
+
+        obs = {"lower_level_agent_{}".format(i): np.zeros(5) for i in range(5)}
         obs.update({"higher_level_agent": f_obs})
         
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
             f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-            self.current_goals[i]
+            self.current_goals[i],
+            type = self.lower_level_reward_type
         ) for i in range(5)}
         rew.update({"higher_level_agent": f_rew})
         done = {"__all__": f_done}
@@ -189,7 +225,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         points = self._points_from_action(action)
 
         energy_consumptions = self._simulate_humans(points)
-        self.energy_consumptions = energy_consumptions
+        self.energy_consumptions = energy_consumptions  
         self.prev_energy = np.abs(energy_consumptions["avg"]) ## TODO: should be more rigorous about checking negative energy!
         reward = self._get_reward(prev_price, energy_consumptions, reward_function = self.reward_function)
         print("reward in lower step")
