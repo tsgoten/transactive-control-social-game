@@ -378,9 +378,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
-        generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
-        generation_tomorrow += generation_tomorrow_nonzero * noise # Add in Gaussian noise when gen in non zero
-
+       
         return np.append(
             np.hstack(
                 (
@@ -420,6 +418,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             for i in range(6)
         }
 
+        ## setting environmental variables in the lower envs so that
+        # I'm sure that there are the higher buy prices being set  
         for agent in range(6):
             self.lower_level_agent_dict[
                 f"lower_level_agent_{agent}"].higher_buy_price = (
