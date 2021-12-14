@@ -356,7 +356,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         return spaces.Box(
             low=-np.inf, high=np.inf, 
-            shape=(24 * (2 + 2 + 6),), 
+            shape=(24 * (2 + 6),), 
             dtype=np.float32)
 
     
@@ -380,7 +380,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
        
         import pdb
-        pdb.set_trace()       
+        pdb.set_trace()    
+
         obs =  np.append(
             np.hstack(
                 (
@@ -393,8 +394,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                     ] 
                 ))
 
-        print("obs shape")
-        print(obs.shape)
         return obs
 
     def step(self, action_dict):
