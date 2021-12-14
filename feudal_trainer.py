@@ -262,7 +262,7 @@ if __name__== "__main__":
             "env_config": vars(args)
         }
 
-        agent_keys = [f"lower_level_agent_{i}" for i in range(5)]
+        agent_keys = [f"lower_level_agent_{i}" for i in range(6)]
         agent_keys += ["higher_level_agent"]
 
 
