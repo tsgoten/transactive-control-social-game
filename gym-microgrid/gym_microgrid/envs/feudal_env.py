@@ -302,7 +302,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         self.buyprices_grid, self.sellprices_grid = self._get_prices()
         # self.prices = self.buyprices_grid #Initialise to buyprices_grid
-        self.generation = self._get_generation()
 
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
@@ -590,8 +589,10 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
         obs = self._get_observation()
 
-        grid_buy_price = obs[:24]
-        grid_sell_price = obs[24:48]
+        grid_buy_price = obs[24:48]
+        grid_sell_price = obs[48:72]
+        higher_aggregator_buy_price = obs[72:96]
+        higher_aggregator_sell_price = obs[96:120]
 
         check = True
 
@@ -601,9 +602,6 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             # pdb.set_trace()
             assert grid_buy_price == buyprice_grid
             assert grid_sell_price == sellprice_grid
-
-        higher_aggregator_buy_price = obs[48:72]
-        higher_aggregator_sell_price = obs[72:96]
 
         optimal_prosumer_buyprice = np.minimum(
             grid_buy_price, np.minimum(
