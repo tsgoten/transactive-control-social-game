@@ -377,6 +377,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1) % 365] 
         sell_price_grid_tomorrow = self.sellprices_grid[(self.day + 1) % 365]
 
+        pdb.set_trace()
+
         obs =  np.append(
             np.hstack(
                 (
