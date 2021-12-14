@@ -390,8 +390,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                     ] 
                 ))
 
-        pdb.set_trace()
-
         return obs
 
     def step(self, action_dict):
@@ -405,7 +403,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         """
         action is 24-dim sell price, then 24-dim buy price
         """
-
+        print("higher level step")
         # set observation: 
         higher_level_obs = self._get_observation()
         self.higher_level_aggregator_buyprice = action[:24] # TODO: dict?
@@ -440,6 +438,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         return obs, rew, done, {}
 
     def _low_level_step(self, action):
+        print("made it to lower level step")
         obs = {}
         rew = {}
         done = {}

@@ -232,15 +232,15 @@ if __name__== "__main__":
     elif args.gym_env == "feudal_spatial":
         upper_level_obs_space = spaces.Box(
             low = -np.inf, high = np.inf, 
-            shape = (24 * (2 + 6),), dtype = np.float64)
+            shape = (24 * (2 + 6),), dtype = np.float32)
         upper_level_action_space = spaces.Box(
-            low = -1, high = 1, shape = (48,), dtype = np.float64)
+            low = -1, high = 1, shape = (48,), dtype = np.float32)
         lower_level_obs_space = spaces.Box(
             low=-np.inf, high=np.inf, 
-            shape=(24 * 6,), dtype=np.float64)
+            shape=(24 * 6,), dtype=np.float32)
         lower_level_action_space = spaces.Box(
             low = -1, high = 1, 
-            shape = (48,), dtype = np.float64)
+            shape = (48,), dtype = np.float32)
 
         policies = {"higher_level_agent": (
             None, upper_level_obs_space, 
