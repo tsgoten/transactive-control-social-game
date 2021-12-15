@@ -358,7 +358,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         return spaces.Box(
             low=-np.inf, high=np.inf, 
             shape=(24 * (2 + 6),), 
-            dtype=np.float64)
+            dtype=np.float32)
     
     def reset(self):
         print("reset")
@@ -391,7 +391,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                             f"lower_level_agent_{i}"].prev_energy 
                         for i in range(6)
                     ] 
-                ))
+                )).astype(np.float32)
         print(obs.shape)
         return obs
 
