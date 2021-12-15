@@ -454,7 +454,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             microgrid_energy_consumptions
         )
 
-        lower_level_profit_total = sum([rew[f"lower_level_agent{i}"] for i in range(6)])
+        lower_level_profit_total = sum([rew[f"lower_level_agent_{i}"] for i in range(6)])
 
         print("higher level profit")
         print(higher_level_profit)
