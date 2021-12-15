@@ -76,7 +76,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         if type == "directional":
             energy_diff = energy_tuple - yesterday_energy_tuple
-            num = np.multiply(energy_diff, goal_tuple)
+            num = np.dot(energy_diff, goal_tuple)
             denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
             pdb.set_trace()
             return  num / denom
@@ -113,7 +113,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
                 (env_obs[2*i:(2*i + 2)], 
                 env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
                 [action[i]])) 
-            for i in range(5)} ## TODO: this is being set twice, should this matter? 
+            for i in range(5)} 
 
         ## previous goals 
 
@@ -136,23 +136,17 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
     def _low_level_step(self, action): 
         yesterday_obs = self.lower_level_env._get_observation()
         yesterday_energy = yesterday_obs[10:]
+        
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action) ### TODO: not the action we think... I think 
         
         print("lower level obs")
-        
-        env_obs = self.lower_level_env._get_observation()
-        
-        # TODO: this commented out code is left as a test to see if the env is functioning right
-        # obs = {"lower_level_agent_{}".format(i): np.concatenate(   ## TODO: this happens twice? 
-        #     (
-        #         env_obs[2*i:(2*i + 2)],
-        #         env_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-        #         [action[i]]) ### TODO: here action is treated as a goal
-        #     ) 
-        #     for i in range(5)}
 
         obs = {"lower_level_agent_{}".format(i): np.zeros(5) for i in range(5)}
         obs.update({"higher_level_agent": f_obs})
+
+        ### flag for the two days being equal 
+        if sum(yesterday_energy == f_obs[10:])==10:
+            pdb.set_trace()
         
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
             energy_tuple=f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
@@ -486,7 +480,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         rew["higher_level_agent"] = higher_level_profit + lower_level_profit_total
 
         done = {"__all__": True}
-        self.day +=1 # TODO does this go here or in higher level step? 
+        self.day = (self.day + 1) % 365 # TODO does this go here or in higher level step? 
 
         return obs, rew, done, {}
     
