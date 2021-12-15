@@ -53,6 +53,6 @@ else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
 fi
 
-singularity instance start instance austin_docker.sif instance1
+singularity instance start austin_docker.sif instance1
 singularity exec instance://instance1 sh -c 'bash singularity_preamble_new.sh'
 singularity exec instance://instance1 sh -c "bash experiment_script.sh"
