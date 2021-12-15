@@ -76,8 +76,14 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         if type == "directional":
             energy_diff = energy_tuple - yesterday_energy_tuple
+            if sum(energy_diff == np.zeros(2)) == 2:
+                print("--"*12)
+                print("No change!")
+                print(f"day: {self.lower_level_env.day}")
+                print("--"*12)
             num = np.dot(energy_diff, goal_tuple)
             denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
+            denom += 1e-4
             return  num / denom
         elif type == "l1":
             return -np.sum(np.abs(energy_tuple - goal_tuple))
