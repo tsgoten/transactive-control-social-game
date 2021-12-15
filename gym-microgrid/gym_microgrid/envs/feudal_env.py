@@ -8,8 +8,6 @@ import random
 from gym_microgrid.envs.utils import price_signal
 from gym_microgrid.envs.agents import *
 from gym_microgrid.envs.reward import Reward
-from gym_socialgame.envs.buffers import GaussianBuffer
-from copy import deepcopy
 
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
@@ -71,7 +69,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         energy_tuple, 
         yesterday_energy_tuple,
         goal, 
-        type = "directional"):
+        type = "directional",
+        agent_num = None):
 
         energy_tuple = np.array(energy_tuple)
         yesterday_energy_tuple = np.array(yesterday_energy_tuple)
@@ -85,6 +84,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
                 print(f"day: {self.lower_level_env.day}")
                 print(f"Yesterday's actions: {self.yesterday_agent_actions}")
                 print(f"Today's actions....: {self.today_agent_actions}")
+                print(f"The agent in trouble is: {agent_num}")
                 print("--"*12)
             num = np.dot(energy_diff, goal_tuple)
             denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
@@ -159,13 +159,14 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 
         ### flag for the two days being equal 
         if sum(yesterday_energy == f_obs[10:])==10:
-            pdb.set_trace()
-        
+            print("WHOA! The two outcomes were the same!")
+
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
             energy_tuple=f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
             yesterday_energy_tuple=yesterday_energy[(2*i) : (2*i + 2)],
             goal=self.current_goals[i],
-            type = self.lower_level_reward_type
+            type = self.lower_level_reward_type,
+            agent_num=i
         ) for i in range(5)}
         rew.update({"higher_level_agent": f_rew})
         done = {"__all__": f_done}
@@ -188,7 +189,7 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         super().__init__(env_config)
         self.action = np.zeros(10)
         print("Initialized RLLib lower agent class")
-        
+
 
     def _create_observation_space(self):
         """
@@ -243,8 +244,6 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         self.energy_consumptions = energy_consumptions  
         self.prev_energy = np.abs(energy_consumptions["avg"]) ## TODO: should be more rigorous about checking negative energy!
         reward = self._get_reward(prev_price, energy_consumptions, reward_function = self.reward_function)
-        print("reward in lower step")
-        print(reward)
         self.last_energy_cost = np.sum(prev_price * np.abs(energy_consumptions["avg"]))
         print("self.last_energy_cost in lower step")
         print(self.last_energy_cost)
