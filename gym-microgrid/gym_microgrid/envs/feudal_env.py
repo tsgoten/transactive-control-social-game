@@ -1,3 +1,4 @@
+from copy import deepcopy
 import gym
 from gym import spaces
 
@@ -181,7 +182,6 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         ) for i in range(5)}
         
         self.last_energy_costs["higher_level_agent"] = self.lower_level_env.last_energy_cost
-
         return obs, rew, done, {}
 
 class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
@@ -274,7 +274,6 @@ class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
         return next_observation
 
 
-
 class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
     """
     Higher level agent 
@@ -301,12 +300,17 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         super().__init__()
         self.higher_level_aggregator_buyprice = np.zeros(24)
         self.higher_level_aggregator_sellprice = np.zeros(24)
-        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_energy_rewards["higher_level_agent"] = 0
-        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_energy_costs["higher_level_agent"] = 0
-        self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_goals["higher_level_agent"] = 0
+        self.batt_stats = {f"lower_level_agent_{i}": {
+            "discharge_caps": 0,
+            "discharges": 0
+            } 
+            for i in range(6)}
 
         self.day = 0
         self.day_length = 24 
@@ -354,12 +358,17 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
     
     def reset(self):
         print("reset")
-        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_energy_rewards["higher_level_agent"] = 0
-        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_energy_costs["higher_level_agent"] = 0
-        self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
+        self.last_goals = {"lower_level_agent_{}".format(i): 0 for i in range(6)}
         self.last_goals["higher_level_agent"] = 0
+        self.batt_stats = {f"lower_level_agent_{i}": {
+            "discharge_caps": 0,
+            "discharges": 0
+            } 
+            for i in range(6)}
 
         # this is the higher level agent's observation 
         ret = self._get_observation() ## TODO: set day = 0? 
@@ -480,7 +489,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         higher_level_profit = self._calculate_higher_level_reward(
             higher_level_obs[:24], #buyprice_grid_tomorrow
-            higher_level_obs[24:48],
+            higher_level_obs[24:48], #sellprice_grid_tomorrow
             self.higher_level_aggregator_buyprice,
             self.higher_level_aggregator_sellprice,
             microgrid_energy_consumptions
@@ -494,6 +503,27 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         print(lower_level_profit_total)
 
         rew["higher_level_agent"] = higher_level_profit + lower_level_profit_total
+        self.last_energy_rewards = rew
+
+        # the cost of energy for all consumers in each grid 
+        self.last_energy_costs =  {
+            f"lower_level_agent_{i}": 
+            self.lower_level_agent_dict[f"lower_level_agent_{i}"].money_from_prosumers
+            for i in range(6)
+        }
+        self.last_energy_costs["higher_level_agent"] = 0
+
+        self.batt_stats = {
+            f"lower_level_agent_{i}": {
+                "discharge_caps": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today,
+                "discharges": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today
+            }
+            for i in range(6)
+        }
+        self.batt_stats["higher_level_agent"] = {
+            "discharge_caps": 0,
+            "discharges": 0
+        }
 
         done = {"__all__": True}
         self.day = (self.day + 1) % 365 # TODO does this go here or in higher level step? 
@@ -686,4 +716,3 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.iteration += 1
 
         return next_observation, reward, done, {}
-

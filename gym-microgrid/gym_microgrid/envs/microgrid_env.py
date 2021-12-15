@@ -119,6 +119,10 @@ class MicrogridEnv(gym.Env):
             self.buffer = GaussianBuffer(self.action_length)
 
         self.iteration = 0
+        self.money_from_prosumers = 0
+
+        self.battery_discharges_cap_today = 0
+        self.battery_discharges_times_today = 0
 
         print("\n Microgrid Environment Initialized! Have Fun! \n")
 
@@ -380,19 +384,25 @@ class MicrogridEnv(gym.Env):
 
         energy_consumptions = {}
         total_consumption = np.zeros(24)
+        battery_discharges_capacities = 0
+        battery_discharge_times = 0
 
         for prosumer_name in self.prosumer_dict:
             
             #Get players response to agent's actions
             prosumer = self.prosumer_dict[prosumer_name]
             prosumer_demand = prosumer.get_response_twoprices(day, buyprice, sellprice)
-  
+            prosumer_battery_capacity, prosumer_battery_discharges = (
+                prosumer.return_battery_characteristics())
             #Calculate energy consumption by prosumer and in total (entire aggregation)
             energy_consumptions[prosumer_name] = prosumer_demand
             total_consumption += prosumer_demand
-
+            battery_discharges_capacities += prosumer_battery_capacity
+            battery_discharge_times += prosumer_battery_discharges
 
         energy_consumptions["Total"] = total_consumption 
+        self.battery_discharges_cap_today = battery_discharges_capacities
+        self.battery_discharges_times_today = battery_discharge_times
         return energy_consumptions
 
     def _get_reward(self, buyprice_grid, sellprice_grid, transactive_price, energy_consumptions):
@@ -459,6 +469,7 @@ class MicrogridEnv(gym.Env):
                     np.dot(np.maximum(0, energy_consumptions[prosumerName]), transactive_buyprice) + 
                     np.dot(np.minimum(0, energy_consumptions[prosumerName]), transactive_sellprice))
 
+        self.money_from_prosumers = money_from_prosumers
         total_reward = None
         if self.reward_function == "market_solving":
             total_reward = - abs(money_from_prosumers - money_to_utility)

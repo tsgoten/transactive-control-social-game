@@ -327,7 +327,9 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
         super().__init__()
         self.log_path = log_path
         self.save_interval = save_interval
-        self.cols = ["energy_reward", "energy_cost"]
+        self.cols = [
+            "energy_reward", "energy_cost", 
+            "battery_discharge_caps", "battery_discharges"]
         # for i in range(obs_dim):
         #     self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
@@ -370,6 +372,10 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
             episode.hist_data[f"{agent_key}/energy_reward"] = []
             episode.user_data[f"{agent_key}/energy_cost"] = []
             episode.hist_data[f"{agent_key}/energy_cost"] = []
+            episode.user_data[f"{agent_key}/battery_discharge_caps"] = []
+            episode.hist_data[f"{agent_key}/battery_discharge_caps"] = []
+            episode.user_data[f"{agent_key}/battery_discharges"] = []
+            episode.hist_data[f"{agent_key}/battery_discharges"] = []
     
     
     def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
@@ -383,6 +389,8 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
 
         # TODO: Implement for planning env. Take a look at CustomCallbacks.
         for agent_key in self.agent_keys:
+
+            # lodding energy rewards (profits)
             if agent_key in env.last_energy_rewards:
                 energy_rew = env.last_energy_rewards[agent_key]
                 episode.user_data[f"{agent_key}/energy_reward"].append(energy_rew)
@@ -391,6 +399,7 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
             else:
                 self.log_vals[f"{agent_key}/energy_reward"].append(np.nan)
 
+            # logging energy costs
             if agent_key in env.last_energy_costs:
                 energy_cost = env.last_energy_costs[agent_key]
                 episode.user_data[f"{agent_key}/energy_cost"].append(energy_cost)
@@ -398,6 +407,19 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
                 self.log_vals[f"{agent_key}/energy_cost"].append(energy_cost)
             else:
                 self.log_vals[f"{agent_key}/energy_cost"].append(np.nan)
+
+            # logging battery characteristics
+            if agent_key in env.batt_stats:
+                batt_stats = env.batt_stats[agent_key]
+                episode.user_data[f"{agent_key}/battery_discharge_caps"].append(batt_stats["discharge_caps"])
+                episode.hist_data[f"{agent_key}/battery_discharge_caps"].append(batt_stats["discharge_caps"])
+                self.log_vals[f"{agent_key}/battery_discharge_caps"].append(batt_stats["discharge_caps"])
+                episode.user_data[f"{agent_key}/battery_discharges"].append(batt_stats["discharges"])
+                episode.hist_data[f"{agent_key}/battery_discharges"].append(batt_stats["discharges"])
+                self.log_vals[f"{agent_key}/battery_discharges"].append(batt_stats["discharges"])
+            else:
+                self.log_vals[f"{agent_key}/battery_discharge_caps"].append(np.nan)
+                self.log_vals[f"{agent_key}/battery_discharges"].append(np.nan)
 
         # TODO: Implement observations. Take a look at CustomCallbacks.
         self.steps_since_save += 1
@@ -417,6 +439,8 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
         for agent_key in self.agent_keys:
             episode.custom_metrics[f"{agent_key}/energy_reward"] = np.mean(episode.user_data[f"{agent_key}/energy_reward"])
             episode.custom_metrics[f"{agent_key}/energy_cost"] = np.mean(episode.user_data[f"{agent_key}/energy_cost"])
+            episode.custom_metrics[f"{agent_key}/battery_discharge_caps"] = np.mean(episode.user_data[f"{agent_key}/battery_discharge_caps"])
+            episode.custom_metrics[f"{agent_key}/battery_discharges"] = np.mean(episode.user_data[f"{agent_key}/battery_discharges"])
 
         return
 

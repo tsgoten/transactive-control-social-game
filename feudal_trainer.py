@@ -11,6 +11,7 @@ import utils
 import os
 
 from gym_microgrid.envs.feudal_env import (FeudalSocialGameHourwise, FeudalMicrogridEnvHigherAggregator)
+from gym_microgrid.envs.feudal_microgrid_baselines_env import (FeudalMicrogridEnvOnlyLowerBaselineEnv)
 from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from custom_callbacks import (HierarchicalCallbacks, CustomCallbacks, HierarchicalMultigridCallbacks)
 import pdb
@@ -298,6 +299,49 @@ if __name__== "__main__":
             config=config,
             logger_creator=logger_creator,
         )
+
+    elif args.gym_env == "feudal_spatial_lower_baseline":
+        lower_level_obs_space = spaces.Box(
+            low=-np.inf, high=np.inf, 
+            shape=(24 * 6,), dtype=np.float64)
+        lower_level_action_space = spaces.Box(
+            low = -1, high = 1, 
+            shape = (48,), dtype = np.float32)
+
+        policies = {}
+        for i in range(6):
+            policies["lower_level_agent_{}".format(i)] = (
+                None, lower_level_obs_space, 
+                lower_level_action_space, {"gamma": 1})
+
+        def policy_mapping_fn(agent_id, *args, **kwargs):
+            return agent_id
+
+        config = {
+            "env": FeudalMicrogridEnvOnlyLowerBaselineEnv,
+            "multiagent": {
+                "policies": policies,
+                "policy_mapping_fn": policy_mapping_fn,
+            },
+            "env_config": vars(args)
+        }
+
+        agent_keys = [f"lower_level_agent_{i}" for i in range(6)]
+
+        callbacks = HierarchicalMultigridCallbacks(
+            log_path=out_path, 
+            save_interval=args.bulk_log_interval, 
+            obs_dim=20,  ## <<- this doesn't effect things 
+            agent_keys = agent_keys)
+
+        config["callbacks"] = lambda: callbacks
+        logger_creator = utils.custom_logger_creator(args.log_path)
+
+        trainer = sac.SACTrainer(
+            env=FeudalMicrogridEnvOnlyLowerBaselineEnv, 
+            config=config,
+            logger_creator=logger_creator,
+        )>"|[]-"
 
     elif args.gym_env=="socialgame_env":
         args.price_in_state = True

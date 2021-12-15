@@ -32,6 +32,8 @@ class Prosumer():
                 self.batterycyclecost = 273/2800 # per unit capacity
                 self.eta = 0.95 #battery one way efficiency
                 self.c_rate = 0.35
+                self.battery_discharged_capacity = 0
+                self.battery_discharged_times = 0
 
         def get_response(
                 self, 
@@ -94,7 +96,7 @@ class Prosumer():
                 self, 
                 day, 
                 buyprice,
-                sellprice
+                sellprice,
                 ):
 
                 """
@@ -150,8 +152,11 @@ class Prosumer():
 
                 if not sol.success:
                         net = load - gen 
+                        x = np.zeros(24)
                 else: 
                         x = sol['x']
+                        self.battery_discharged_capacity = np.sum(np.abs(x))
+                        self.battery_discharged_times = np.sum(np.abs(x)>0)
                         net = load - gen + (-eta + 1/eta)*abs(x)/2 + (eta + 1/eta)*x/2
                         upper_bound = load - gen + np.ones(24) * capacity * battery_num * c_rate
                         lower_bound = load - gen - np.ones(24) * capacity * battery_num * c_rate
@@ -159,7 +164,12 @@ class Prosumer():
                         net = np.maximum(net, lower_bound)         # lower bound 
                 # sol['x'] = x
                 # sol['fun'] = dailyobjective(x)
-                return np.array(net)
+                if not return_battery_consumptions:
+                        return np.array(net)
+               
+        def return_battery_characteristics(self):
+                return self.battery_discharged_capacity, self.battery_discharged_times
+
 
 
         def get_battery_operation(
