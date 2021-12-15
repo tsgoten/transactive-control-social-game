@@ -359,7 +359,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         return spaces.Box(
             low=-np.inf, high=np.inf, 
             shape=(24 * (2 + 6),), 
-            dtype=np.float32)
+            dtype=np.float64)
 
     
     def reset(self):
@@ -373,7 +373,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         # this is the higher level agent's observation 
         ret = self._get_observation() ## TODO: set day = 0? 
-        
+
         return {"higher_level_agent": ret}
     
     def _get_observation(self):
