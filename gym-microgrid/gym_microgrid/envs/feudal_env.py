@@ -297,6 +297,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.day = 0
         self.day_length = 24 
 
+        self.total_iter = 0
+
         self.buyprices_grid, self.sellprices_grid = self._get_prices()
         # self.prices = self.buyprices_grid #Initialise to buyprices_grid
 
@@ -411,6 +413,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                 f"lower_level_agent_{agent}"].higher_sell_price = (
                     self.higher_level_aggregator_sellprice
                 )
+
+        self.total_iter += 1
 
         rew = {f"lower_level_agent_{i}": 0 for i in range(6)}
         done = {"__all__": False}
