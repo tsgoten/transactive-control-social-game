@@ -53,5 +53,5 @@ else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
 fi
 
-singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "bash singularity_preamble_new.sh && bash experiment_script.sh"
+singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "./singularity_preamble_new.sh && ./experiment_script.sh"
 
