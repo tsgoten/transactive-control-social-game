@@ -478,15 +478,13 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         microgrids_energy_consumptions
         ):
 
-        total_consumption = np.sum(list(microgrids_energy_consumptions.values()))
+        total_consumption = np.sum([i for i in microgrids_energy_consumptions.values()], axis=0)
 
         money_to_utility = (
             np.dot(np.maximum(0, total_consumption), buyprice_grid) + 
             np.dot(np.minimum(0, total_consumption), sellprice_grid))
 
         money_from_prosumers = 0
-
-        pdb.set_trace()
 
         for prosumerName, consumptions in microgrids_energy_consumptions.items():
             money_from_prosumers += (
@@ -496,6 +494,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         total_reward = money_from_prosumers - money_to_utility
 
+        pdb.set_trace()
+        
         return total_reward
 
 
