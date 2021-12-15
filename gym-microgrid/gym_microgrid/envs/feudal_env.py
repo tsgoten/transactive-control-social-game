@@ -486,6 +486,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         money_from_prosumers = 0
 
+        pdb.set_trace()
+
         for prosumerName, consumptions in microgrids_energy_consumptions.items():
             money_from_prosumers += (
                 (np.dot(np.maximum(0, consumptions), higher_aggregator_buyprice) + 
