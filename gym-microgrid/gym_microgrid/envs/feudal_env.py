@@ -388,13 +388,27 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         print("higher level step")
         # set observation: 
         higher_level_obs = self._get_observation()
-        self.higher_level_aggregator_buyprice = action[:24] # TODO: dict?
-        self.higher_level_aggregator_sellprice = action[24:48]
+
+        buyprice_grid = higher_level_obs[:24]
+        sellprice_grid = higher_level_obs[24:48]
+
+        self.higher_level_aggregator_buyprice = (
+            self._prices_from_action(
+                action[:24], 
+                buyprice_grid,
+                sellprice_grid
+            ))
+        self.higher_level_aggregator_sellprice = (
+            self._prices_from_action(
+                action[24:48],
+                buyprice_grid,
+                sellprice_grid
+            ))
         obs = {
             f"lower_level_agent_{i}": np.concatenate((
                 self.lower_level_agent_dict[f"lower_level_agent_{i}"].generation_tomorrow,
-                higher_level_obs[:24], # buyprice_grid_tomorrow
-                higher_level_obs[24:48], # sellprice_grid_tomorrow
+                buyprice_grid, # buyprice_grid_tomorrow
+                sellprice_grid, # sellprice_grid_tomorrow
                 self.higher_level_aggregator_buyprice,
                 self.higher_level_aggregator_sellprice,
                 self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy
@@ -445,7 +459,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         microgrid_energy_consumptions = {f"lower_level_agent_{agent}":
             self.lower_level_agent_dict[f"lower_level_agent_{agent}"].prev_energy 
             for agent in range(6)}
-        
+
         higher_level_profit = self._calculate_higher_level_reward(
             higher_level_obs[:24], #buyprice_grid_tomorrow
             higher_level_obs[24:48],
@@ -467,6 +481,28 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.day +=1 # TODO does this go here or in higher level step? 
 
         return obs, rew, done, {}
+    
+    def _price_from_action(self, action, buyprice_grid, sellprice_grid):
+        """
+        Purpose: Convert agent actions that lie in [-1,1] into transactive price (conversion is for multidiscrete setting)
+
+        Args:
+            Action: 24-dim vector corresponding to action for each hour
+
+        Returns: Price: 24-dim vector of transactive prices
+        """
+        
+        # Continuous space is symmetric [-1,1], we map to -> [sellprice_grid,buyprice_grid] 
+        # -1 -> sellprice. 1 -> buyprice
+
+        midpoint_price = (buyprice_grid + sellprice_grid)/2
+        diff_grid = buyprice_grid - sellprice_grid
+        scaled_diffs_bp = np.multiply(action[0:24], diff_grid)/2 # Scale to fit difference at each hour
+        scaled_diffs_sp = np.multiply(action[24:], diff_grid)/2 # Scale to fit difference at each hour
+        buyprice = scaled_diffs_bp + midpoint_price
+        sellprice = scaled_diffs_sp + midpoint_price
+
+        return buyprice, sellprice
 
 
     def _calculate_higher_level_reward(
