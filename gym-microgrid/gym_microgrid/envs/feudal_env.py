@@ -78,6 +78,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
             energy_diff = energy_tuple - yesterday_energy_tuple
             num = np.multiply(energy_diff, goal_tuple)
             denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
+            pdb.set_trace()
             return  num / denom
         elif type == "l1":
             return -np.sum(np.abs(energy_tuple - goal_tuple))
