@@ -434,7 +434,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             rew[f"lower_level_agent_{agent}"],
             done[f"lower_level_agent_{agent}"],
             info[f"lower_level_agent_{agent}"]) = (
-                self.lower_level_agent_dict["lower_level_agent_{agent}"].step(
+                self.lower_level_agent_dict[f"lower_level_agent_{agent}"].step(
                     action[f"lower_level_agent_{agent}"]) # TODO: is it stored like this? 
             )
 
