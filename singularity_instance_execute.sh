@@ -55,4 +55,4 @@ fi
 
 singularity instance start austin_docker.sif instance1
 #singularity exec instance://instance1 sh -c 'bash singularity_preamble_new.sh'
-singularity exec instance://instance1 sh -c "bash experiment_script.sh"
+singularity exec instance://instance1 sh -c "bash microgrid_experiment_script.sh"
