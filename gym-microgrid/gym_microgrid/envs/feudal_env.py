@@ -442,9 +442,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         obs.update({"higher_level_agent": higher_level_obs})
 
         # calculate reward 
-        microgrid_energy_consumptions = [
+        microgrid_energy_consumptions = {f"lower_level_agent_{agent}":
             self.lower_level_agent_dict[f"lower_level_agent_{agent}"].prev_energy 
-            for agent in range(6)]
+            for agent in range(6)}
         
         higher_level_profit = self._calculate_higher_level_reward(
             higher_level_obs[:24], #buyprice_grid_tomorrow
@@ -485,10 +485,10 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         money_from_prosumers = 0
 
-        for prosumerName in microgrids_energy_consumptions:
+        for prosumerName, consumptions in microgrids_energy_consumptions.items():
             money_from_prosumers += (
-                (np.dot(np.maximum(0, microgrids_energy_consumptions[prosumerName]), higher_aggregator_buyprice) + 
-                np.dot(np.minimum(0, microgrids_energy_consumptions[prosumerName]), higher_aggregator_sellprice))
+                (np.dot(np.maximum(0, consumptions), higher_aggregator_buyprice) + 
+                np.dot(np.minimum(0, consumptions), higher_aggregator_sellprice))
             )
 
         total_reward = money_from_prosumers - money_to_utility
