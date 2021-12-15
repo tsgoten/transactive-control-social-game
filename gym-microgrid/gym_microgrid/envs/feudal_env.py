@@ -28,6 +28,9 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         self.energy_in_state = True
         self.total_iter = 0
         
+        self.yesterday_agent_actions = np.zeros(10)
+        self.today_agent_actions = np.zeros(10)
+
         self.last_energy_rewards = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
         self.last_energy_rewards["higher_level_agent"] = 0
         self.last_energy_costs = {"lower_level_agent_{}".format(i): 0 for i in range(5)}
@@ -80,6 +83,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
                 print("--"*12)
                 print("No change!")
                 print(f"day: {self.lower_level_env.day}")
+                print(f"Yesterday's actions: {self.yesterday_agent_actions}")
+                print(f"Today's actions....: {self.today_agent_actions}")
                 print("--"*12)
             num = np.dot(energy_diff, goal_tuple)
             denom = np.linalg.norm(energy_diff) * np.linalg.norm(goal_tuple)
@@ -141,7 +146,10 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
     def _low_level_step(self, action): 
         yesterday_obs = self.lower_level_env._get_observation()
         yesterday_energy = yesterday_obs[10:]
-        
+                
+        self.yesterday_agent_actions = self.lower_level_env.action
+        self.today_agent_actions = action
+
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action) ### TODO: not the action we think... I think 
         
         print("lower level obs")
