@@ -1,7 +1,7 @@
 #!/bin/bash
 
 UNAME=tc
-DOCKER_BUILDKIT=1 docker build lucasspangher/socialgame_v1:austin -t austin_temp --build-arg UID=$(id -u) --build-arg UNAME=$UNAME
+DOCKER_BUILDKIT=1 docker build 51b2e019c69f -t austin_temp --build-arg UID=$(id -u) --build-arg UNAME=$UNAME
 WORKDIR=/home/$UNAME
 
 GPU_FLAGS=""
@@ -10,4 +10,4 @@ then
   GPU_FLAGS="--gpus=all"
 fi
 
-docker run -it $GPU_FLAGS --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 --net=host -v "$(pwd):$WORKDIR" tc-temp
+docker run -it $GPU_FLAGS --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 --net=host -v "$(pwd):$WORKDIR" 51b2e019c69f

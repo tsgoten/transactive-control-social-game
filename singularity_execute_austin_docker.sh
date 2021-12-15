@@ -53,8 +53,4 @@ else
     singularity build austin_docker.sif library://yanlarry/default/singularity_phnet:v1
 fi
 
-singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "bash singularity_preamble_new.sh && /
-            python feudal_trainer.py -w --num_steps=50000 --gym_env=feudal_timewise --lower_level_reward_type=directional && /
-            python feudal_trainer.py -w --num_steps=50000 --gym_env=feudal_timewise --lower_level_reward_type=l1 && /
-            python feudal_trainer.py -w --num_steps=50000 --gym_env=feudal_timewise --lower_level_reward_type=l2 && /
-            python feudal_trainer.py -w --num_steps=50000 --gym_env=feudal_timewise --lower_level_reward_type=l1"
+singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c 'bash experiment_script.sh'
