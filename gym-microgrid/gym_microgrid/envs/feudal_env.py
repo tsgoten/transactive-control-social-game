@@ -378,9 +378,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         if "higher_level_agent" in action_dict:
             return self._high_level_step(action_dict["higher_level_agent"])
         else:
-            return self._low_level_step(np.concatenate(
-                [action_dict["lower_level_agent_{}".format(i)] for i in range(5)]))
-    
+            return self._low_level_step(action_dict)
+
+            
     def _high_level_step(self, action):
         """
         action is 24-dim sell price, then 24-dim buy price
