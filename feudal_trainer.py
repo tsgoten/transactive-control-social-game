@@ -243,13 +243,13 @@ if __name__== "__main__":
             shape = (24 * (2 + 6),), dtype = np.float64)
         upper_level_action_space = spaces.Box(
             low = -1, high = 1, 
-            shape = (48,), dtype = np.floa32)
+            shape = (48,), dtype = np.float32)
         lower_level_obs_space = spaces.Box(
             low=-np.inf, high=np.inf, 
-            shape=(24 * 6,), dtype=np.floa32)
+            shape=(24 * 6,), dtype=np.float32)
         lower_level_action_space = spaces.Box(
             low = -1, high = 1, 
-            shape = (48,), dtype = np.floa32)
+            shape = (48,), dtype = np.float32)
 
         policies = {"higher_level_agent": (
             None, upper_level_obs_space, 
