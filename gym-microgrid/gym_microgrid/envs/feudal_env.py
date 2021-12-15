@@ -417,13 +417,23 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         # I'm sure that there are the higher buy prices being set  
         for agent in range(6):
             self.lower_level_agent_dict[
-                f"lower_level_agent_{agent}"].higher_buy_price = (
+                f"lower_level_agent_{agent}"].higher_level_buy_price = (
                     self.higher_level_aggregator_buyprice
                 )
             self.lower_level_agent_dict[
-                f"lower_level_agent_{agent}"].higher_sell_price = (
+                f"lower_level_agent_{agent}"].higher_level_sell_price = (
                     self.higher_level_aggregator_sellprice
                 )
+            self.lower_level_agent_dict[
+                f"lower_level_agent_{agent}"].grid_buy_price = (
+                    buyprice_grid
+                )
+            self.lower_level_agent_dict[
+                f"lower_level_agent_{agent}"].grid_sell_price = (
+                    sellprice_grid
+                )
+
+        print(f"day: {self.day}")
 
         self.total_iter += 1
 
@@ -553,6 +563,8 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.reward_function = "profit_maximizing"
         self.higher_level_sell_price = np.zeros(24)
         self.higher_level_buy_price = np.zeros(24)
+        self.grid_sell_price = np.zeros(24)
+        self.grid_buy_price = np.zeros(24)
         self.generation_tomorrow = np.zeros(24)
     
     def _create_observation_space(self):
@@ -570,7 +582,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         prev_energy = self.prev_energy
         generation_tomorrow = self.generation[(self.day + 1)%365] 
         buyprice_grid_tomorrow = self.buyprices_grid[(self.day + 1)%365] 
-        sellprice_grid_tomorrow = self.sellprices_grid[self.day]
+        sellprice_grid_tomorrow = self.sellprices_grid[(self.day + 1)%365]
 
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
         generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
@@ -617,22 +629,11 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
         obs = self._get_observation()
 
-        grid_buy_price = obs[24:48]
-        grid_sell_price = obs[48:72]
-        higher_aggregator_buy_price = obs[72:96]
-        higher_aggregator_sell_price = obs[96:120]
+        grid_buy_price = self.grid_buy_price
+        grid_sell_price = self.grid_sell_price
+        higher_aggregator_buy_price = self.higher_level_buy_price
+        higher_aggregator_sell_price = self.higher_level_sell_price
 
-        check = True
-
-        if check:
-            buyprice_grid = self.buyprices_grid[self.day + 1]
-            sellprice_grid = self.sellprices_grid[self.day + 1]
-            # pdb.set_trace()
-            if not sum(grid_buy_price == buyprice_grid) == len(grid_buy_price):
-                pdb.set_trace()
-                raise AssertionError(f"grid_buy_price: {grid_buy_price} not equal \
-                    to buyprice_grid{buyprice_grid}" )
-            assert sum(grid_sell_price == sellprice_grid) == len(grid_sell_price)
 
         optimal_prosumer_buyprice = np.minimum(
             grid_buy_price, np.minimum(
