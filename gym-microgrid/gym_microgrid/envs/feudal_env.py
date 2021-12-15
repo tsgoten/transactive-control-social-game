@@ -390,12 +390,12 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.higher_level_aggregator_sellprice = action[24:48]
         obs = {
             f"lower_level_agent_{i}": np.concatenate((
-                self.lower_level_agent_dict[f"lower_level_agent{i}"].generation_tomorrow,
+                self.lower_level_agent_dict[f"lower_level_agent_{i}"].generation_tomorrow,
                 higher_level_obs[:24], # buyprice_grid_tomorrow
                 higher_level_obs[24:48], # sellprice_grid_tomorrow
                 self.higher_level_aggregator_buyprice,
                 self.higher_level_aggregator_sellprice,
-                self.lower_level_agent_dict[f"lower_level_agent{i}"].prev_energy
+                self.lower_level_agent_dict[f"lower_level_agent_{i}"].prev_energy
             ))
             for i in range(6)
         }
