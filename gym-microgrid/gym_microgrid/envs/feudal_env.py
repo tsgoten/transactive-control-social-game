@@ -519,7 +519,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             low = -np.inf, 
             high = np.inf, 
             shape = (dim,), 
-            dtype = np.float32
+            dtype = np.float64
             )
 
 
@@ -544,7 +544,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
                 self.higher_level_buy_price,
                 self.higher_level_sell_price,
                 prev_energy,)
-            ).astype(np.float32)
+            )#.astype(np.float32)
 
     def step(self, action):
         """
