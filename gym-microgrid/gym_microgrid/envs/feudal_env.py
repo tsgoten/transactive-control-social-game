@@ -475,7 +475,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         ):
 
         total_consumption = sum(microgrids_energy_consumptions)
-        money_to_utility = np.dot(np.maximum(0, total_consumption), buyprice_grid) + np.dot(np.minimum(0, total_consumption), sellprice_grid)
+        money_to_utility = (
+            np.dot(np.maximum(0, total_consumption), buyprice_grid) + 
+            np.dot(np.minimum(0, total_consumption), sellprice_grid))
 
         money_from_prosumers = 0
 
