@@ -298,7 +298,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.day_length = 24 
 
         #Create Observation Space (aka State Space)
-        self.observation_space = self._create_observation_space()
+        #self.observation_space = self._create_observation_space()
 
         self.buyprices_grid, self.sellprices_grid = self._get_prices()
         # self.prices = self.buyprices_grid #Initialise to buyprices_grid
@@ -338,10 +338,10 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             sell_prices.append(sellprice)
 
         return buy_prices, sell_prices
-        """
-        def _create_observation_space(self):
+
+    def _create_observation_space(self):
         print("observation space function")
-        
+        """
         Purpose: Returns the observation space.
         State space includes:
             Previous day's net total energy consumption (24 dim)
@@ -353,13 +353,12 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         Returns:
             State Space for environment based on action_space_str
-        
+        """
 
         return spaces.Box(
             low=-np.inf, high=np.inf, 
             shape=(24 * (2 + 6),), 
-            dtype=np.float32)
-        """
+            dtype=np.float64)
     
     def reset(self):
         print("reset")
@@ -372,8 +371,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         # this is the higher level agent's observation 
         ret = self._get_observation() ## TODO: set day = 0? 
-        
+      
         return {"higher_level_agent": ret.tolist()}
+
     
     def _get_observation(self):
         print("_get_observation function")
