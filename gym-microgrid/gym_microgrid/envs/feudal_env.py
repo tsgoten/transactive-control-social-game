@@ -186,8 +186,10 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
 class FeudalSocialGameLowerHourEnv(SocialGameEnvRLLib):
     def __init__(self, env_config):
         super().__init__(env_config)
+        self.action = np.zeros(10)
         print("Initialized RLLib lower agent class")
-    
+        
+
     def _create_observation_space(self):
         """
         Purpose: Returns the observation space.
