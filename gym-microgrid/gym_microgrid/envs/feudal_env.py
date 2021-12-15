@@ -527,7 +527,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         total_reward = money_from_prosumers - money_to_utility
 
-        pdb.set_trace()
+        print(f"total_reward = {total_reward}")
         
         return total_reward
 
@@ -628,7 +628,9 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             buyprice_grid = self.buyprices_grid[self.day]
             sellprice_grid = self.sellprices_grid[self.day]
             # pdb.set_trace()
-            assert sum(grid_buy_price == buyprice_grid) == len(grid_buy_price)
+            if not sum(grid_buy_price == buyprice_grid) == len(grid_buy_price):
+                raise AssertionError(f"grid_buy_price: {grid_buy_price} not equal \
+                    to buyprice_grid{buyprice_grid}" )
             assert sum(grid_sell_price == sellprice_grid) == len(grid_sell_price)
 
         optimal_prosumer_buyprice = np.minimum(
