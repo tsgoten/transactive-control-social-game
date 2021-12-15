@@ -155,7 +155,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
             energy_tuple=f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-            yesterday_energy_tuple=yesterday_obs[(2*i) : (2*i + 2)],
+            yesterday_energy_tuple=yesterday_energy[(2*i) : (2*i + 2)],
             goal=self.current_goals[i],
             type = self.lower_level_reward_type
         ) for i in range(5)}
