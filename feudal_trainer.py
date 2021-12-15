@@ -117,7 +117,7 @@ parser.add_argument(
     default=3e-4,
 )
 parser.add_argument(
-    "--lower_reward_function",
+    "--lower_level_reward_type",
     help="reward function for lower level agent",
     type=str,
     default="l2",
