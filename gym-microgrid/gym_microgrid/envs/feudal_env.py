@@ -392,15 +392,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         buyprice_grid = higher_level_obs[:24]
         sellprice_grid = higher_level_obs[24:48]
 
-        self.higher_level_aggregator_buyprice = (
+        self.higher_level_aggregator_buyprice, self.higher_level_aggregator_sellprice = (
             self._price_from_action(
-                action[:24], 
-                buyprice_grid,
-                sellprice_grid
-            ))
-        self.higher_level_aggregator_sellprice = (
-            self._price_from_action(
-                action[24:48],
+                action, 
                 buyprice_grid,
                 sellprice_grid
             ))
