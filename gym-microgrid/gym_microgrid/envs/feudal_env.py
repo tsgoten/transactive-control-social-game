@@ -297,9 +297,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.day = 0
         self.day_length = 24 
 
-        #Create Observation Space (aka State Space)
-        #self.observation_space = self._create_observation_space()
-
         self.buyprices_grid, self.sellprices_grid = self._get_prices()
         # self.prices = self.buyprices_grid #Initialise to buyprices_grid
 
@@ -338,27 +335,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             sell_prices.append(sellprice)
 
         return buy_prices, sell_prices
-
-    def _create_observation_space(self):
-        print("observation space function")
-        """
-        Purpose: Returns the observation space.
-        State space includes:
-            Previous day's net total energy consumption (24 dim)
-            Future (current) day's renewable generation prediction (24 dim)
-            Future (current) day's ToU buy prices from utility (24 dim)
-        
-        Args:
-            None
-
-        Returns:
-            State Space for environment based on action_space_str
-        """
-
-        return spaces.Box(
-            low=-np.inf, high=np.inf, 
-            shape=(24 * (2 + 6),), 
-            dtype=np.float32)
     
     def reset(self):
         print("reset")
@@ -414,12 +390,12 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.higher_level_aggregator_sellprice = action[24:48]
         obs = {
             f"lower_level_agent_{i}": np.concatenate((
-                self.lower_level_agent_dict[i].generation_tomorrow,
+                self.lower_level_agent_dict[f"lower_level_agent{i}"].generation_tomorrow,
                 higher_level_obs[:24], # buyprice_grid_tomorrow
                 higher_level_obs[24:48], # sellprice_grid_tomorrow
                 self.higher_level_aggregator_buyprice,
                 self.higher_level_aggregator_sellprice,
-                self.lower_level_agent_dict[i].prev_energy
+                self.lower_level_agent_dict[f"lower_level_agent{i}"].prev_energy
             ))
             for i in range(6)
         }
