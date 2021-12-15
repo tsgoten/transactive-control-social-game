@@ -63,7 +63,6 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         return (action + 1) * 250
 
 
-
     def _compute_lower_level_rewards(
         self, 
         energy_tuple, 
@@ -102,6 +101,7 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         total_agent_energy_cost = np.sum(energy_tuple * price_tuple)
         return total_agent_energy_cost
 
+
     def _high_level_step(self, action):
         print("higher level action")
         print(action)
@@ -133,6 +133,8 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         return obs, rew, done, {}
 
     def _low_level_step(self, action): 
+        yesterday_obs = self.lower_level_env._get_observation()
+        yesterday_energy = yesterday_obs[10:]
         f_obs, f_rew, f_done, _ = self.lower_level_env.step(action) ### TODO: not the action we think... I think 
         
         print("lower level obs")
@@ -152,8 +154,9 @@ class FeudalSocialGameHourwise(MultiAgentEnv):
         obs.update({"higher_level_agent": f_obs})
         
         rew = {"lower_level_agent_{}".format(i): self._compute_lower_level_rewards(
-            f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
-            self.current_goals[i],
+            energy_tuple=f_obs[(10 + 2*i) : (10 + (2*i + 2))], 
+            yesterday_energy_tuple=yesterday_obs[(2*i) : (2*i + 2)],
+            goal=self.current_goals[i],
             type = self.lower_level_reward_type
         ) for i in range(5)}
         rew.update({"higher_level_agent": f_rew})
