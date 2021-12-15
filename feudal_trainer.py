@@ -61,6 +61,12 @@ parser.add_argument(
     default="experiment"
 )
 parser.add_argument(
+    "--wandb_group",
+    help="Group to group wandb exps under",
+    type=str,
+    default="scratch_experiments"
+)
+parser.add_argument(
     "--num_steps",
     help="Number of timesteps to train algo",
     type=int,
@@ -177,7 +183,10 @@ if __name__== "__main__":
     args = parser.parse_args()
 
     if args.wandb:
-        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
+        wandb.init(
+            project="energy-demand-response-game", 
+            entity="social-game-rl",
+            group=args.wandb_group)
         wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
         wandb.config.update(args)
 
