@@ -380,7 +380,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         else:
             return self._low_level_step(action_dict)
 
-            
+
     def _high_level_step(self, action):
         """
         action is 24-dim sell price, then 24-dim buy price
@@ -592,8 +592,8 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             buyprice_grid = self.buyprices_grid[self.day]
             sellprice_grid = self.sellprices_grid[self.day]
             # pdb.set_trace()
-            assert grid_buy_price == buyprice_grid
-            assert grid_sell_price == sellprice_grid
+            assert sum(grid_buy_price == buyprice_grid) == len(grid_buy_price)
+            assert sum(grid_sell_price == sellprice_grid) == len(grid_sell_price)
 
         optimal_prosumer_buyprice = np.minimum(
             grid_buy_price, np.minimum(
