@@ -629,6 +629,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             sellprice_grid = self.sellprices_grid[self.day]
             # pdb.set_trace()
             if not sum(grid_buy_price == buyprice_grid) == len(grid_buy_price):
+                pdb.set_trace()
                 raise AssertionError(f"grid_buy_price: {grid_buy_price} not equal \
                     to buyprice_grid{buyprice_grid}" )
             assert sum(grid_sell_price == sellprice_grid) == len(grid_sell_price)
