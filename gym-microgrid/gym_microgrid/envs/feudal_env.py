@@ -391,7 +391,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
                             f"lower_level_agent_{i}"].prev_energy 
                         for i in range(6)
                     ] 
-                )).astype(np.float32)
+                ))#.astype(np.float32)
         print(obs.shape)
         return obs
 
