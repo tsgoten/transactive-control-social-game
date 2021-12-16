@@ -1,3 +1,4 @@
+#!/bin/bash
 cd gym-microgrid/ 
 pip install -e . 
 cd ..

@@ -45,7 +45,10 @@ parser.add_argument(
     "--gym_env",
     help="feudal or flat",
     default="feudal_timewise",
-    choices=["feudal_timewise", "socialgame_env", "feudal_spatial"]
+    choices=[
+        "feudal_timewise", "socialgame_env", 
+        "feudal_spatial", "feudal_spatial_lower_baseline"
+        ]
 )
 parser.add_argument(
     "--response_type_string",
