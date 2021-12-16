@@ -149,7 +149,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=10000,
+    default=500,
 )
 parser.add_argument(
     "--bin_observation_space",
