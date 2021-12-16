@@ -35,6 +35,7 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
         super().__init__(env_config)
         self.sell_price_grid = np.zeros(24)
         self.buyprice_grid = np.zeros(24)
+        self.total_iter = 0
         print("ended init")
 
     def _set_lower_level_attributes(self, buyprice_grid, sellprice_grid):
@@ -61,6 +62,7 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
         """
         want to obs{}, rew{}, done info with the lower level agents filled in. 
         """
+        self.total_iter += 1
         self.buyprice_grid = self.buyprices_grid[(self.day + 1) % 365] 
         self.sell_price_grid = self.sellprices_grid[(self.day + 1) % 365]
 
@@ -106,3 +108,5 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
             for i in range(6)
         }
     
+
+# class FeudalMicrogridOnlyUpperBaselineEnv():
