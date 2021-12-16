@@ -68,9 +68,9 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
 
         obs, rew, done, info = self._low_level_step(action_dict)
 
-        obs.remove("higher_level_agent")
-        rew.remove("higher_level_agent")
-        done.remove("higher_level_agent")
+        obs = {key: obs[key] for key in obs if key != 'higher_level_agent'}
+        rew = {key: rew[key] for key in rew if key != 'higher_level_agent'}
+        done = {key: done[key] for key in done if key != 'higher_level_agent'}
 
         self.last_energy_rewards = rew
         self.last_energy_costs =  {
