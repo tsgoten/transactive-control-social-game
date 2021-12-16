@@ -344,7 +344,7 @@ if __name__== "__main__":
             env=FeudalMicrogridEnvOnlyLowerBaselineEnv, 
             config=config,
             logger_creator=logger_creator,
-        )>"|[]-"
+        )
 
     elif args.gym_env=="socialgame_env":
         args.price_in_state = True

@@ -164,8 +164,8 @@ class Prosumer():
                         net = np.maximum(net, lower_bound)         # lower bound 
                 # sol['x'] = x
                 # sol['fun'] = dailyobjective(x)
-                if not return_battery_consumptions:
-                        return np.array(net)
+        
+                return np.array(net)
                
         def return_battery_characteristics(self):
                 return self.battery_discharged_capacity, self.battery_discharged_times
