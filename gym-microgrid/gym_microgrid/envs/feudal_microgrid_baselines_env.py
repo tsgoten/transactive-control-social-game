@@ -78,6 +78,14 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
             self.lower_level_agent_dict[f"lower_level_agent_{i}"].money_from_prosumers
             for i in range(6)
         }
+        
+        self.batt_stats = {
+            f"lower_level_agent_{i}": {
+                "discharge_caps": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today,
+                "discharges": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today
+            }
+            for i in range(6)
+        }
 
         return obs, rew, done, {}
     
