@@ -30,7 +30,7 @@ class CustomCallbacks(DefaultCallbacks):
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
         # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)
+        # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)
         for v in self.log_vals.values():
             v.clear()
 
@@ -217,7 +217,7 @@ class HierarchicalCallbacks(DefaultCallbacks):
         # pdb.set_trace()
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
+        # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
 
@@ -357,7 +357,7 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
         # pdb.set_trace()
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
+        # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
         for v in self.log_vals.values():
             v.clear()
 
