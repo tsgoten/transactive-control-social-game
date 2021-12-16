@@ -86,6 +86,7 @@ class FeudalMicrogridEnvOnlyLowerBaselineEnv(FeudalMicrogridEnvHigherAggregator)
             }
             for i in range(6)
         }
+        print(f"batt_stats for agent 1 are: {self.batt_stats['lower_level_agent_1']}")
 
         return obs, rew, done, {}
     
