@@ -44,6 +44,7 @@ export SINGULARITY_CACHEDIR=$BASE_DIR/.singularity/cache
 
 SINGULARITY_TEMPDIR=$BASE_DIR/tmp
 export SINGULARITY_TEMPDIR=$BASE_DIR/tmp
+export WANDB_API_KEY=7385069f57b00860da0e7add0bdc6eba19fb07cd
 
 SINGULARITY_CACHE_DIR=/global/scratch/users/lucas_spangher/transactive-control-social-game
 
