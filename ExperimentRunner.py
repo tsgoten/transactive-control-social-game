@@ -34,9 +34,9 @@ def get_agent(args):
     """
     ### Setup for MultiAgent ###
     #Create a dummy environment to get action and observation space for our settings
-    # dummy_env = environments[args.gym_env](vars(args))
+    dummy_env = environments[args.gym_env](vars(args))
     # TODO: HACK
-    dummy_env = environments["socialgame"](vars(args))
+    # dummy_env = environments["socialgame"](vars(args))
     obs_space = dummy_env.observation_space
     act_space = dummy_env.action_space
 
@@ -44,7 +44,7 @@ def get_agent(args):
     if args.num_gpus > 0:
         device = "cuda"
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-        hnet = PFL_Hypernet(n_nodes = 3, # TODO: HARDCODED FOR NOW 
+        hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes, # TODO: HARDCODED FOR NOW 
                     embedding_dim = args.hnet_embedding_dim, 
                     num_layers = args.hnet_num_layers,
                     num_hidden = args.hnet_num_hidden,
@@ -53,7 +53,7 @@ def get_agent(args):
                     device = device)
         hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         config["multiagent"] = {
-            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(3))}, #TODO: ALSO HARDCODED HERE
+            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(dummy_env.n_nodes))}, #TODO: ALSO HARDCODED HERE
             "policy_mapping_fn": lambda agent_id, episode=None: agent_id
         }
     #### Algorithm: PPO ####
@@ -78,7 +78,7 @@ def get_agent(args):
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
             # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. And above in Hypernet setup
             callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
-                                            obs_dim=obs_dim, num_agents=3)
+                                            obs_dim=obs_dim, num_agents=dummy_env.n_nodes)
         else:
             callbacks = CustomCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
 
@@ -156,7 +156,7 @@ def train(agent, args):
     training_steps = 0
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         weights = {}
-        for agent_id in range(3): # TODO: HARDCODED
+        for agent_id in range(hnet.n_nodes):
             weights[str(agent_id)] = hnet(agent_id)
         agent.set_weights(detach_weights(weights))
     #breakpoint()
@@ -280,6 +280,12 @@ parser.add_argument(
     "--price_in_state",
     help="Whether to include price in state (default = F)",
     action="store_false"
+)
+parser.add_argument(
+    "--points_multiplier",
+    help="points multiplier for SocialGame simulated agents (default = 10)",
+    default=10,
+    type=float
 )
 parser.add_argument(
     "--batch_size",
@@ -429,7 +435,7 @@ if __name__ == "__main__":
 
     # Get Agent
     agent = get_agent(args)
-    print("Agent initialied.")
+    print("Agent initialized.")
 
     # Training
     print(f'Beginning Testing! Logs are being saved somewhere')

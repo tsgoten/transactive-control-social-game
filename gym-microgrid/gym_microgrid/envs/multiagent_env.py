@@ -115,7 +115,7 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
         print(env_config)
         if env_config["custom_config"] is not None:
             print("Using custom config")
-            with open(env_config["custom_config"]) as f:
+            with open(env_config["custom_config"], "r") as f:
                 data = json.load(f)
                 print(data)
                 self.configs = [deepcopy(env_config) for _ in range(len(data))]
@@ -124,5 +124,6 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
 
         self.total_iter = 0
         self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
+        self.n_nodes = len(self.envs)
         self.observation_space = self.envs[0].observation_space
         self.action_space = self.envs[0].action_space
