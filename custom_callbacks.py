@@ -263,11 +263,19 @@ class MultiAgentCallbacks(DefaultCallbacks):
             socialgame_env = base_env.get_unwrapped()[0]
         else:
             socialgame_env = base_env
-
+        agg_metrics = {"agg/energy_reward": [],
+                        "agg/energy_cost": []}
         for agent in self.agents:
             episode.custom_metrics[f"{agent}/energy_reward"] = np.mean(episode.user_data[f"{agent}/energy_reward"])
             episode.custom_metrics[f"{agent}/energy_cost"] = np.mean(episode.user_data[f"{agent}/energy_cost"])
-
+            agg_metrics["agg/energy_reward"].append(episode.custom_metrics["agg/energy_reward"])
+            agg_metrics["agg/energy_cost"].append(episode.custom_metrics["agg/energy_cost"])
+        for name, metric in agg_metrics.items():
+            metric = np.array(metric)
+            episode.custom_metrics[name + "_mean"] = np.mean(metric)
+            episode.custom_metrics[name + "_std"] = np.std(metric)
+            episode.custom_metrics[name + "_min"] = np.min(metric)
+            episode.custom_metrics[name + "_max"] = np.max(metric)
         return
 
 
