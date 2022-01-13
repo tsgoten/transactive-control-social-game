@@ -4,6 +4,7 @@ from gym import spaces
 import numpy as np
 import pandas as pd 
 import random
+import json
 
 from gym_microgrid.envs.utils import price_signal
 from gym_microgrid.envs.agents import *
@@ -108,8 +109,21 @@ class MultiAgentSocialGameEnv(BaseMultiAgentEnv):
         MultiAgent implementation of SocialGame. TODO: Add descreption. 
         """
         # TODO: Modify so it's not just a copy of the same agent
-        self.configs = [deepcopy(env_config) for _ in range(3)]
+        # self.configs = [deepcopy(env_config) for _ in range(3)]
+
+        print("will try custom config")
+        print(env_config)
+        if env_config["custom_config"] is not None:
+            print("Using custom config")
+            with open(env_config["custom_config"], "r") as f:
+                data = json.load(f)
+                print(data)
+                self.configs = [deepcopy(env_config) for _ in range(len(data))]
+                for i in range(len(data)):
+                    self.configs[i].update(data[i])
+
         self.total_iter = 0
         self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
+        self.n_nodes = len(self.envs)
         self.observation_space = self.envs[0].observation_space
         self.action_space = self.envs[0].action_space

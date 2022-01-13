@@ -5,7 +5,9 @@ import os
 import wandb
 import math
 import utils
+import json
 from custom_callbacks import CustomCallbacks, MultiAgentCallbacks
+from copy import deepcopy
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
@@ -20,9 +22,11 @@ import torch.optim as optim
 from collections import OrderedDict
 hnet = None
 hnet_optimizer = None
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
+
 def get_agent(args):
-    global hnet, hnet_optimizer
+    global hnet, hnet_optimizer, device
     """
     Purpose: Import the algorithm and policy to create an agent. 
     Returns: Agent
@@ -31,12 +35,16 @@ def get_agent(args):
     ### Setup for MultiAgent ###
     #Create a dummy environment to get action and observation space for our settings
     dummy_env = environments[args.gym_env](vars(args))
+    # TODO: HACK
+    # dummy_env = environments["socialgame"](vars(args))
     obs_space = dummy_env.observation_space
     act_space = dummy_env.action_space
 
     config = {}
+    if args.num_gpus > 0:
+        device = "cuda"
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-        hnet = PFL_Hypernet(n_nodes = 3, # TODO: HARDCODED FOR NOW 
+        hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes, # TODO: HARDCODED FOR NOW 
                     embedding_dim = args.hnet_embedding_dim, 
                     num_layers = args.hnet_num_layers,
                     num_hidden = args.hnet_num_hidden,
@@ -45,7 +53,7 @@ def get_agent(args):
                     device = device)
         hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         config["multiagent"] = {
-            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(3))}, #TODO: ALSO HARDCODED HERE
+            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(dummy_env.n_nodes))}, #TODO: ALSO HARDCODED HERE
             "policy_mapping_fn": lambda agent_id, episode=None: agent_id
         }
     #### Algorithm: PPO ####
@@ -59,7 +67,7 @@ def get_agent(args):
         config["sgd_minibatch_size"] = 16
         config["lr"] = 3e-4
         config["clip_param"] = 0.3
-        # config["num_gpus"] =  1 # this may throw an error
+        config["num_gpus"] =  args.num_gpus # this may throw an error
         config["num_workers"] = 1
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
@@ -70,7 +78,7 @@ def get_agent(args):
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
             # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. And above in Hypernet setup
             callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
-                                            obs_dim=obs_dim, num_agents=3)
+                                            obs_dim=obs_dim, num_agents=dummy_env.n_nodes)
         else:
             callbacks = CustomCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, obs_dim=obs_dim)
 
@@ -148,7 +156,7 @@ def train(agent, args):
     training_steps = 0
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         weights = {}
-        for agent_id in range(3): # TODO: HARDCODED
+        for agent_id in range(hnet.n_nodes):
             weights[str(agent_id)] = hnet(agent_id)
         agent.set_weights(detach_weights(weights))
     #breakpoint()
@@ -185,6 +193,15 @@ environments = {
 }
 
 parser = argparse.ArgumentParser()
+# Custom Agents Arguments
+parser.add_argument(
+    "--custom_config",
+    # type=argparse.FileType("r"),
+    type=str,
+    default = None,
+    help="Path to custom config file"
+)
+# Library Argument
 parser.add_argument(
     "--library",
     help = "What RL Library backend is in use",
@@ -263,6 +280,12 @@ parser.add_argument(
     "--price_in_state",
     help="Whether to include price in state (default = F)",
     action="store_false"
+)
+parser.add_argument(
+    "--points_multiplier",
+    help="points multiplier for SocialGame simulated agents (default = 10)",
+    default=10,
+    type=float
 )
 parser.add_argument(
     "--batch_size",
@@ -355,6 +378,12 @@ parser.add_argument(
     default=1
 )
 parser.add_argument(
+    "--num_gpus",
+    help="Number of gpus",
+    type= int,
+    default=0
+)
+parser.add_argument(
     "--scenarios",
     nargs='+',
     help="List of complex_batt_pv_scenarios to have separate agents for",
@@ -398,10 +427,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Running with following options: {args}")
 
-    # ray.init(local_mode=args.local_mode)
-    # ray.init()
-    # TODO
-
     # Uploading logs to wandb
     if args.wandb:
         wandb.init(project="energy-demand-response-game", entity="social-game-rl")
@@ -410,12 +435,10 @@ if __name__ == "__main__":
 
     # Get Agent
     agent = get_agent(args)
-    # TODO: Implement
-    print("Agent initialied.")
+    print("Agent initialized.")
 
     # Training
     print(f'Beginning Testing! Logs are being saved somewhere')
-    # TODO: Implement
     train(agent, args)
 
 

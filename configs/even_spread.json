@@ -1,0 +1,30 @@
+[
+    {
+        "points_multiplier": 10,
+        "shiftable_load_frac": 0.027646361921376927,
+        "curtailable_load_frac": 0.5224264730768718,
+        "shiftByHours": 7,
+        "maxCurtailHours": 6,
+        "response_type_string": "cs"
+    },
+    {
+        "points_multiplier": 5,
+        "shiftable_load_frac": 0.9707008638771715,
+        "curtailable_load_frac": 0.15828485917848834,
+        "shiftByHours": 3,
+        "maxCurtailHours": 2,
+        "response_type_string": "cs"
+    },
+    {
+        "response_type_string": "t",
+        "points_multiplier": 17
+    },
+    {
+        "response_type_string": "l",
+        "points_multiplier": 17
+    },
+    {
+        "response_type_string": "s",
+        "points_multiplier": 16
+    }
+]

@@ -25,7 +25,8 @@ class SocialGameEnv(gym.Env):
         bin_observation_space=False,
         manual_tou_magnitude=.3,
         smirl_weight=None,
-        circ_buffer_size=None):
+        circ_buffer_size=None,
+        **kwargs):
 
         """
         SocialGameEnv for an agent determining incentives in a social game.
@@ -35,13 +36,14 @@ class SocialGameEnv(gym.Env):
 
         Args:
             action_space_string: (String) either "continuous", "continuous_normalized", "multidiscrete"
-            response_type_string: (String) either "t", "s", "l" , denoting whether the office's response function is threshold, sinusoidal, or linear
+            response_type_string: (String) either "t", "s", "l" "cs", denoting whether the office's response function is threshold, sinusoidal, or linear
             number_of_participants: (Int) denoting the number of players in the social game (must be > 0 and < 20)
             one_day: (Int) in range [-1,365] denoting which fixed day to train on .
                     Note: -1 = Random Day, 0 = Train over entire Yr, [1,365] = Day of the Year
             price_in_state: (Boolean) denoting whether (or not) to include the current grid price in the state
             energy_in_state: (Boolean) denoting whether (or not) to append yesterday's grid price to the state
             manual_tou_magnitude: (Float>1) The relative magnitude of the TOU pricing to the regular pricing
+            kwargs: Anything to get passed along to simulated agents (like points_multiplier)
 
         """
         super(SocialGameEnv, self).__init__()
@@ -69,6 +71,7 @@ class SocialGameEnv(gym.Env):
         self.reward_function = reward_function
         self.bin_observation_space = bin_observation_space
         self.manual_tou_magnitude = manual_tou_magnitude
+        self.agent_kwargs = kwargs
         self.smirl_weight = smirl_weight
         self.hours_in_day = 10
         self.last_smirl_reward = None
@@ -202,7 +205,11 @@ class SocialGameEnv(gym.Env):
         my_baseline_energy = pd.DataFrame(data = {"net_energy_use" : working_hour_energy})
 
         for i in range(self.number_of_participants):
-            player = CurtailAndShiftPerson(my_baseline_energy, points_multiplier = 10, response = 'l')
+            if self.response_type_string == 'cs':
+                
+                player = CurtailAndShiftPerson(my_baseline_energy, **self.agent_kwargs)
+            else:
+                player = DeterministicFunctionPerson(my_baseline_energy, response=self.response_type_string, **self.agent_kwargs)
             player_dict['player_{}'.format(i)] = player
 
         return player_dict
@@ -471,7 +478,7 @@ class SocialGameEnv(gym.Env):
         #Checking that response_type_string is valid
         assert isinstance(response_type_string, str), "Variable response_type_string should be of type String. Instead got type {}".format(type(response_type_string))
         response_type_string = response_type_string.lower()
-        assert response_type_string in ["t", "s", "l"], "Variable response_type_string should be either t, s, l. Instead got value {}".format(response_type_string)
+        assert response_type_string in ["t", "s", "l", "cs"], "Variable response_type_string should be either t, s, l, cs. Instead got value {}".format(response_type_string)
 
 
         #Checking that number_of_participants is valid
@@ -493,18 +500,20 @@ class SocialGameEnv(gym.Env):
 class SocialGameEnvRLLib(SocialGameEnv):
     def __init__(self, env_config):
         super().__init__(
-            action_space_string = env_config["action_space_string"],
-            response_type_string = env_config["response_type_string"],
-            number_of_participants = env_config["number_of_participants"],
-            one_day = env_config["one_day"],
-            price_in_state= env_config["price_in_state"],
-            energy_in_state = env_config["energy_in_state"],
-            pricing_type=env_config["pricing_type"],
-            reward_function = env_config["reward_function"],
-            bin_observation_space=env_config["bin_observation_space"],
-            manual_tou_magnitude=env_config["manual_tou_magnitude"],
-            smirl_weight=env_config["smirl_weight"],
-            circ_buffer_size=env_config["circ_buffer_size"]
+            **env_config
+            # action_space_string = env_config["action_space_string"],
+            # response_type_string = env_config["response_type_string"],
+            # number_of_participants = env_config["number_of_participants"],
+            # one_day = env_config["one_day"],
+            # price_in_state= env_config["price_in_state"],
+            # energy_in_state = env_config["energy_in_state"],
+            # pricing_type=env_config["pricing_type"],
+            # reward_function = env_config["reward_function"],
+            # bin_observation_space=env_config["bin_observation_space"],
+            # manual_tou_magnitude=env_config["manual_tou_magnitude"],
+            # smirl_weight=env_config["smirl_weight"],
+            # circ_buffer_size=env_config["circ_buffer_size"],
+            
         )
         print("Initialized RLLib child class")
 
