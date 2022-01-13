@@ -68,7 +68,7 @@ def get_agent(args):
         config["lr"] = 3e-4
         config["clip_param"] = 0.3
         config["num_gpus"] =  args.num_gpus # this may throw an error
-        config["num_workers"] = 1
+        config["num_workers"] = args.num_workers
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
         # obs_dim = np.sum([args.energy_in_state, args.price_in_state])
@@ -216,6 +216,12 @@ parser.add_argument(
     type=str,
     default="ppo",
     choices=["sac", "ppo", "maml", "uc_bandit"]
+)
+parser.add_argument(
+    "--num_workers",
+    help = "Number of cores you want to sacrifice to RLLib",
+    type=int,
+    default=1
 )
 parser.add_argument(
     "--action_space_string",
