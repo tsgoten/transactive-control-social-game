@@ -71,3 +71,27 @@ exit
 pip freeze
 pip freeze > pip_env.txt
 exit
+ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=config_scripts/even_spread.py 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=config_scripts/even_spread.py 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=config_scripts/even_spread.py 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json  --num_gpus=1
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json  --num_gpus=1
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json  --num_gpus=1
+git push
+exit
+ls
+cd tc
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --number_of_participants=1 
+git pull
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --number_of_participants=1 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --number_of_participants=1 --custom_config=configs/even_spread.json 
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --number_of_participants=1 --custom_config=configs/even_spread.json --num_workers=5
+git pul
+git pull
+exit
