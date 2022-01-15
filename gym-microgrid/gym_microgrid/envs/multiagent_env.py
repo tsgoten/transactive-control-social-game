@@ -50,8 +50,8 @@ class BaseMultiAgentEnv(MultiAgentEnv):
             if done:
                 all_ = all_ and done
             #observation = np.concat(observation, np.array([self.curr_env_id]), axis=-1)
-        info_dict["__all__"] = all_
-        return obs_dict, rew_dict, info_dict, done_dict
+        done_dict["__all__"] = all_
+        return obs_dict, rew_dict, done_dict, info_dict
 
     def _get_observation(self):
         ret =  {str(i): self.envs[i]._get_observation() for i in range(len(self.envs))}

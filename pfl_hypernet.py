@@ -69,7 +69,7 @@ class PFL_Hypernet(nn.Module):
             weights *= scales * ((2 / (fan_in + fan_out)) ** 0.5)
             weights += shifts
 
-           return_dict[k] = weights
+           return_dict[k] = weights.to("cpu")
            
            index += self.products_dict[k]
         return return_dict

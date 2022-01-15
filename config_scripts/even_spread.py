@@ -29,8 +29,8 @@ if __name__ == '__main__':
     for i in range(num_cs_envs):
         config = {
             "points_multiplier":random.choice(range(1, 20)),
-            "shiftable_load_frac":random.uniform(0, 1),
-            "curtailable_load_frac":random.uniform(0, 1),
+            "shiftable_load_frac":random.uniform(0.1, 1),
+            "curtailable_load_frac":random.uniform(0.1, 1),
             "shiftByHours":random.choice(range(1, 8), ),
             "maxCurtailHours":random.choice(range(1, 8),),
             "response_type_string": "cs"

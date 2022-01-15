@@ -11,7 +11,11 @@ from copy import deepcopy
 
 import ray
 import ray.rllib.agents.ppo as ray_ppo
+from ray.rllib.examples.models.centralized_critic_models import \
+    CentralizedCriticModel, TorchCentralizedCriticModel
+from ray.rllib.models import ModelCatalog
 from pfl_hypernet import PFL_Hypernet
+from ccppo import CCPPOTorchPolicy, CCTrainer
 
 from gym_socialgame.envs.socialgame_env import (SocialGameEnvRLLib)
 from gym_microgrid.envs.microgrid_env import (MicrogridEnvRLLib)
@@ -20,6 +24,8 @@ from gym_microgrid.envs.multiagent_env import (MultiAgentSocialGameEnv, MultiAge
 import torch
 import torch.optim as optim
 from collections import OrderedDict
+
+
 hnet = None
 hnet_optimizer = None
 # device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -44,20 +50,30 @@ def get_agent(args):
     if args.num_gpus > 0:
         device = "cuda"
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-        hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes, # TODO: HARDCODED FOR NOW 
-                    embedding_dim = args.hnet_embedding_dim, 
-                    num_layers = args.hnet_num_layers,
-                    num_hidden = args.hnet_num_hidden,
-                    out_params_path = args.hnet_out_params_path,
-                    lr = args.hnet_lr,
-                    device = device)
-        hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
-        config["multiagent"] = {
-            "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {}) for i, scenario in enumerate(range(dummy_env.n_nodes))}, #TODO: ALSO HARDCODED HERE
-            "policy_mapping_fn": lambda agent_id, episode=None: agent_id
-        }
+        if args.use_hnet:
+            hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes,
+                        embedding_dim = args.hnet_embedding_dim, 
+                        num_layers = args.hnet_num_layers,
+                        num_hidden = args.hnet_num_hidden,
+                        out_params_path = args.hnet_out_params_path,
+                        lr = args.hnet_lr,
+                        device = device)
+            hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
+        if args.algo=="ppo":
+            config["multiagent"] = {
+                "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
+                "policy_mapping_fn": lambda agent_id, episode=None: agent_id
+            }
+        elif args.algo=="ccppo":
+            config["multiagent"] = {
+                "policies": {str(i): (CCPPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
+                "policy_mapping_fn": lambda agent_id, episode=None: agent_id
+            }
+        else:
+            raise NotImplementedError
+
     #### Algorithm: PPO ####
-    if args.algo == "ppo":
+    if args.algo == "ppo" or "ccppo":
         # Modify the default configs for PPO
         default_config = ray_ppo.DEFAULT_CONFIG.copy()
         #merge config with default config (with ours overwriting in case of clashes)
@@ -76,7 +92,6 @@ def get_agent(args):
             
         out_path = os.path.join(args.log_path, "bulk_data.h5")
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-            # TODO: Hardcoded to have 2 agents. Fix in multiagent_env.py as well. And above in Hypernet setup
             callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
                                             obs_dim=obs_dim, num_agents=dummy_env.n_nodes)
         else:
@@ -90,16 +105,29 @@ def get_agent(args):
 
         if args.wandb:
             wandb.save(out_path)
-
-        return ray_ppo.PPOTrainer(
-            config = config, 
-            env = environments[args.gym_env],
-            logger_creator = logger_creator
-        )
+        if args.algo == "ppo":
+            return ray_ppo.PPOTrainer(
+                config = config, 
+                env = environments[args.gym_env],
+                logger_creator = logger_creator
+            )
+        else:
+            print("RUNNING CCPPO")
+            ModelCatalog.register_custom_model(
+                "cc_model", TorchCentralizedCriticModel
+                if config["framework"] == "torch" else CentralizedCriticModel)
+            config["model"] = {"custom_model": "cc_model",}
+            return CCTrainer(
+                config = config, 
+                env = environments[args.gym_env],
+                logger_creator = logger_creator
+            )
 
     # Add more algorithms here. 
 
 def pfl_hnet_update(agent, result, args, old_weights):
+    # Get list of weights of each worker, including remote replicas
+    #curr_weights = trainer.workers.foreach_worker(lambda ev: ev.get_policy().get_weights())
     curr_weights = agent.get_weights()
     # set gradients to 0 to start w
     hnet_optimizer.zero_grad()
@@ -124,7 +152,10 @@ def pfl_hnet_update(agent, result, args, old_weights):
     for agent_id in curr_weights.keys():
         new_weights = hnet(int(agent_id))
         new_weight_dict[agent_id] = new_weights
-    agent.set_weights(detach_weights(new_weight_dict))
+    # Set weights of each worker, including remote replicas
+    for w in agent.workers.remote_workers():
+        w.set_weights.remote(new_weight_dict)
+    #agent.set_weights(detach_weights(new_weight_dict))
     return result, new_weight_dict
 
 def detach_weights(weights):
@@ -154,16 +185,18 @@ def train(agent, args):
     print("Beginning training.")
     to_log = []
     training_steps = 0
-    if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
+    if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet:
         weights = {}
         for agent_id in range(hnet.n_nodes):
             weights[str(agent_id)] = hnet(agent_id)
+        # Set weights of each worker, including remote replicas
+        #agent.workers.foreach_worker(lambda ev: ev.get_policy().set_weights(detach_weights(weights)))
         agent.set_weights(detach_weights(weights))
     #breakpoint()
     while training_steps < num_steps:
         result = agent.train()
-        if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-            print("****\nShould do hnet update\n****")
+        if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet:
+            print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
             result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         training_steps = result["timesteps_total"]
         log = {name: result[name] for name in to_log}
@@ -215,7 +248,7 @@ parser.add_argument(
     help="RL Algorithm",
     type=str,
     default="ppo",
-    choices=["sac", "ppo", "maml", "uc_bandit"]
+    choices=["sac", "ppo", "maml", "uc_bandit", "ccppo"]
 )
 parser.add_argument(
     "--num_workers",
@@ -396,6 +429,11 @@ parser.add_argument(
     default=[]
 )
 # Hypernetwork parameters
+parser.add_argument(
+    "--use_hnet",
+    help="Whether or not to use the hypernetwork for MARL optimization",
+    action="store_true",
+    )
 parser.add_argument(
     "--hnet_embedding_dim",
     help="Size of the embedding",

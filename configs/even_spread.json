@@ -1,30 +1,62 @@
 [
     {
-        "points_multiplier": 10,
-        "shiftable_load_frac": 0.027646361921376927,
-        "curtailable_load_frac": 0.5224264730768718,
-        "shiftByHours": 7,
-        "maxCurtailHours": 6,
-        "response_type_string": "cs"
-    },
-    {
-        "points_multiplier": 5,
-        "shiftable_load_frac": 0.9707008638771715,
-        "curtailable_load_frac": 0.15828485917848834,
-        "shiftByHours": 3,
+        "points_multiplier": 1,
+        "shiftable_load_frac": 0.7336394324132733,
+        "curtailable_load_frac": 0.7935064560736919,
+        "shiftByHours": 5,
         "maxCurtailHours": 2,
         "response_type_string": "cs"
     },
     {
+        "points_multiplier": 17,
+        "shiftable_load_frac": 0.9057891844862703,
+        "curtailable_load_frac": 0.8262258864639319,
+        "shiftByHours": 1,
+        "maxCurtailHours": 5,
+        "response_type_string": "cs"
+    },
+    {
+        "points_multiplier": 15,
+        "shiftable_load_frac": 0.5142117594429597,
+        "curtailable_load_frac": 0.7755858659555387,
+        "shiftByHours": 5,
+        "maxCurtailHours": 6,
+        "response_type_string": "cs"
+    },
+    {
+        "points_multiplier": 13,
+        "shiftable_load_frac": 0.16630822708558618,
+        "curtailable_load_frac": 0.8798964384763563,
+        "shiftByHours": 4,
+        "maxCurtailHours": 5,
+        "response_type_string": "cs"
+    },
+    {
+        "points_multiplier": 9,
+        "shiftable_load_frac": 0.414461957100427,
+        "curtailable_load_frac": 0.8183246019645787,
+        "shiftByHours": 7,
+        "maxCurtailHours": 1,
+        "response_type_string": "cs"
+    },
+    {
         "response_type_string": "t",
-        "points_multiplier": 17
+        "points_multiplier": 11
     },
     {
         "response_type_string": "l",
-        "points_multiplier": 17
+        "points_multiplier": 3
     },
     {
         "response_type_string": "s",
-        "points_multiplier": 16
+        "points_multiplier": 5
+    },
+    {
+        "response_type_string": "t",
+        "points_multiplier": 18
+    },
+    {
+        "response_type_string": "l",
+        "points_multiplier": 8
     }
 ]

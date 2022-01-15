@@ -26,12 +26,15 @@ class CustomCallbacks(DefaultCallbacks):
         print("initialized Custom Callbacks")
 
     def save(self):
-        log_df=pd.DataFrame(data=self.log_vals)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
-        for v in self.log_vals.values():
-            v.clear()
+        try:
+            log_df=pd.DataFrame(data=self.log_vals)
+            log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+            for v in self.log_vals.values():
+                v.clear()
 
-        self.steps_since_save=0
+            self.steps_since_save=0
+        except ValueError:
+            breakpoint()
 
 
     def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
@@ -101,7 +104,7 @@ class CustomCallbacks(DefaultCallbacks):
                 if self.steps_since_save == self.save_interval:
                     self.save()
         else:
-            if socialgame_env.use_smirl and socialgame_env.last_smirl_reward:
+            if socialgame_env.use_smirl and hasattr(socialgame_env, "last_smirl_reward") and socialgame_env.last_smirl_reward:
                 smirl_rew = socialgame_env.last_smirl_reward
                 episode.user_data["smirl_reward"].append(smirl_rew)
                 episode.hist_data["smirl_reward"].append(smirl_rew)
@@ -197,12 +200,15 @@ class MultiAgentCallbacks(DefaultCallbacks):
 
 
     def save(self):
-        log_df=pd.DataFrame(data=self.log_vals)
-        log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
-        for v in self.log_vals.values():
-            v.clear()
+        try:
+            log_df=pd.DataFrame(data=self.log_vals)
+            log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=True, format="table")
+            for v in self.log_vals.values():
+                v.clear()
 
-        self.steps_since_save=0
+            self.steps_since_save=0
+        except ValueError:
+            breakpoint()
 
 
     def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
@@ -270,8 +276,8 @@ class MultiAgentCallbacks(DefaultCallbacks):
         for agent in self.agents:
             episode.custom_metrics[f"{agent}/energy_reward"] = np.mean(episode.user_data[f"{agent}/energy_reward"])
             episode.custom_metrics[f"{agent}/energy_cost"] = np.mean(episode.user_data[f"{agent}/energy_cost"])
-            agg_metrics["agg/energy_reward"].append(episode.custom_metrics["agg/energy_reward"])
-            agg_metrics["agg/energy_cost"].append(episode.custom_metrics["agg/energy_cost"])
+            agg_metrics["agg/energy_reward"].append(episode.custom_metrics[f"{agent}/energy_reward"])
+            agg_metrics["agg/energy_cost"].append(episode.custom_metrics[f"{agent}/energy_cost"])
 
         # Log aggregate metric statistics
         for name, metric in agg_metrics.items():

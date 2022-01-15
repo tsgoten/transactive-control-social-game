@@ -95,3 +95,36 @@ python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=33
 git pul
 git pull
 exit
+screen
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet
+pip install wandb
+pip install --upgrade wandb
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet --num_workers=4
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet --num_workers=4 --algo=ccppo
+python ExperimentRunner.py -w --gym_env=socialgame_multi --custom_config=configs/even_spread.json --exp_name=hnet --num_workers=4 --algo=ccppo
+which ray
+which rllib
+python
+ls
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet
+screen
+sudo apt update
+apt update
+apt install screen
+sudo apt install screen
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet
+exit
+python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/even_spread.json --use_hnet
+exit
