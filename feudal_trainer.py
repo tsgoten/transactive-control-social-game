@@ -149,7 +149,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=500,
+    default=50,
 )
 parser.add_argument(
     "--bin_observation_space",
@@ -366,13 +366,11 @@ if __name__== "__main__":
             config=config,
             logger_creator=logger_creator,)
 
-    training_step = 0
-    while training_step < args.num_steps:
+    while training_steps < args.num_steps:
         print("in training loop")
         result = trainer.train()
         training_steps = result["timesteps_total"]
         log = result # {name: result[name] for name in to_log}
-        
-        print(f"------- training step {training_step}-------")
+        print(f"------- training step {training_steps}-------")
         print(log)
 
