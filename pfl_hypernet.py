@@ -19,8 +19,8 @@ class PFL_Hypernet(nn.Module):
         self.out_dim = self.calculate_out_dim()
         shifts = nn.Parameter(torch.zeros(self.out_dim, device=self.device))
         scales = nn.Parameter(torch.ones(self.out_dim, device=self.device))
-        #self.register_parameter(name='shifts', param=shifts)
-        #self.register_parameter(name='scales', param=scales)
+        self.register_parameter(name='shifts', param=shifts)
+        self.register_parameter(name='scales', param=scales)
         self.validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
         
         self.embedding = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
@@ -57,8 +57,8 @@ class PFL_Hypernet(nn.Module):
             # restrict weights to have mean 0 and variance scaled with avg of fan_in and fan_out, similar to Xavier initialization
            
            weights = weight_vector[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
-           shifts = 0#self.shifts[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
-           scales = 1#self.scales[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
+           shifts = self.shifts[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
+           scales = self.scales[index:index + self.products_dict[k]].reshape(self.out_params_dict[k])
            if len(self.out_params_dict[k]) > 1:
             fan_in = self.out_params_dict[k][0]
             fan_out = self.out_params_dict[k][1]

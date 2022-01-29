@@ -98,10 +98,14 @@ def centralized_critic_postprocessing(policy,
         sample_batch[OPPONENT_OBS] = np.zeros(
             cur_obs_shape
             )
-        sample_batch[OPPONENT_ACTION] = np.zeros_like(
-            sample_batch[SampleBatch.ACTIONS])
-        sample_batch[SampleBatch.VF_PREDS] = np.zeros_like(
-            sample_batch[SampleBatch.REWARDS], dtype=np.float32)
+        act_shape = list(sample_batch[SampleBatch.ACTIONS].shape)
+        act_shape[0] *= policy.number_of_agents
+        sample_batch[OPPONENT_ACTION] = np.zeros(
+            act_shape
+            )
+        rew_shape = list(sample_batch[SampleBatch.REWARDS].shape)
+        sample_batch[SampleBatch.VF_PREDS] = np.zeros(
+            rew_shape, dtype=np.float32)
 
     completed = sample_batch["dones"][-1]
     if completed:

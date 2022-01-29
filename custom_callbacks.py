@@ -10,6 +10,10 @@ from ray.rllib.evaluation import MultiAgentEpisode, RolloutWorker
 from ray.rllib.policy import Policy
 from ray.rllib.policy.sample_batch import SampleBatch
 
+from multiprocessing import Lock
+
+
+
 class CustomCallbacks(DefaultCallbacks):
 
     def __init__(self, log_path, save_interval, obs_dim=10, env_id=0, unwrap_env=True):
@@ -182,8 +186,9 @@ class MultiAgentCallbacks(DefaultCallbacks):
         self.log_path = log_path
         self.save_interval = save_interval
         self.cols = ["energy_reward", "energy_cost"]
-        for i in range(obs_dim):
-            self.cols.append("observation_" + str(i))
+        #Observation Logging not yet implemented
+        # for i in range(obs_dim):
+        #     self.cols.append("observation_" + str(i))
         self.obs_dim = obs_dim
         self.env_id = env_id
 

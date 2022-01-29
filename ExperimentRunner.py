@@ -28,8 +28,8 @@ from collections import OrderedDict
 
 hnet = None
 hnet_optimizer = None
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cpu"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+#device = "cpu"
 
 def get_agent(args):
     global hnet, hnet_optimizer, device
@@ -60,9 +60,16 @@ def get_agent(args):
                         device = device)
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         if args.algo=="ppo":
+            #pass
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
                 "policy_mapping_fn": lambda agent_id, episode=None: agent_id
+            }
+        elif args.algo=="single_ppo":
+            print("USING SINGLE PPO MODEL")
+            config["multiagent"] = {
+                "policies": {'0': (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) },
+                "policy_mapping_fn": lambda agent_id, episode=None: '0'
             }
         elif args.algo=="ccppo":
             config["multiagent"] = {
@@ -73,7 +80,7 @@ def get_agent(args):
             raise NotImplementedError
 
     #### Algorithm: PPO ####
-    if args.algo == "ppo" or "ccppo":
+    if args.algo == "ppo" or "ccppo" or "single_ppo":
         # Modify the default configs for PPO
         default_config = ray_ppo.DEFAULT_CONFIG.copy()
         #merge config with default config (with ours overwriting in case of clashes)
@@ -105,7 +112,7 @@ def get_agent(args):
 
         if args.wandb:
             wandb.save(out_path)
-        if args.algo == "ppo":
+        if args.algo == "ppo" or "single_ppo":
             return ray_ppo.PPOTrainer(
                 config = config, 
                 env = environments[args.gym_env],
@@ -193,14 +200,19 @@ def train(agent, args):
         #agent.workers.foreach_worker(lambda ev: ev.get_policy().set_weights(detach_weights(weights)))
         agent.set_weights(detach_weights(weights))
     #breakpoint()
+    num_train_steps = 0
     while training_steps < num_steps:
         result = agent.train()
-        if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet:
+        training_steps = result["timesteps_total"]
+        num_train_steps += 1
+        if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet and num_train_steps % args.hnet_num_local_steps == 0:
             print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
             result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
-        training_steps = result["timesteps_total"]
+        
+        
         log = {name: result[name] for name in to_log}
         print(log)
+        
 
     #list of different local agents
     #for each local agent, we call .train()
@@ -248,7 +260,7 @@ parser.add_argument(
     help="RL Algorithm",
     type=str,
     default="ppo",
-    choices=["sac", "ppo", "maml", "uc_bandit", "ccppo"]
+    choices=["sac", "ppo", "maml", "uc_bandit", "ccppo", "single_ppo"]
 )
 parser.add_argument(
     "--num_workers",
@@ -463,6 +475,12 @@ parser.add_argument(
     help="Hnet learning rate",
     type= float,
     default=3e-4
+)
+parser.add_argument(
+    "--hnet_num_local_steps",
+    help = "Number of local steps between hnet updates",
+    type=int,
+    default=1
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 
