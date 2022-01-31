@@ -366,6 +366,8 @@ if __name__== "__main__":
             config=config,
             logger_creator=logger_creator,)
 
+    training_steps = 0 
+
     while training_steps < args.num_steps:
         print("in training loop")
         result = trainer.train()
