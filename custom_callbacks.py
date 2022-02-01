@@ -358,6 +358,7 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
         log_vals_to_save = {key: value for key, value in self.log_vals.items() if len(value) > 0}
         log_df=pd.DataFrame(data=log_vals_to_save)
         # log_df.to_hdf(self.log_path, "metrics_{}".format(self.env_id), append=False)# , append=True, format="table")
+        # log_df.to_csv()
         for v in self.log_vals.values():
             v.clear()
 
@@ -422,6 +423,9 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
                 self.log_vals[f"{agent_key}/battery_discharges"].append(np.nan)
 
         # TODO: Implement observations. Take a look at CustomCallbacks.
+        
+        pdb.set_trace()
+
         self.steps_since_save += 1
         if self.steps_since_save == self.save_interval:
             self.save()
