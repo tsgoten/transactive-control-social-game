@@ -156,7 +156,7 @@ class Prosumer():
                 else: 
                         x = sol['x']
                         self.battery_discharged_capacity = np.sum(np.abs(x))
-                        self.battery_discharged_times = np.sum(np.abs(x)>0)
+                        self.battery_discharged_times = np.sum(np.abs(x)>.1)
                         net = load - gen + (-eta + 1/eta)*abs(x)/2 + (eta + 1/eta)*x/2
                         upper_bound = load - gen + np.ones(24) * capacity * battery_num * c_rate
                         lower_bound = load - gen - np.ones(24) * capacity * battery_num * c_rate
