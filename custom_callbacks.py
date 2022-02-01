@@ -424,12 +424,7 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
 
         # TODO: Implement observations. Take a look at CustomCallbacks.
         
-        print("-------------")
-        print("------------")
-        print("printing wandb artifacts")
-        print(episode)
-        print("-------------")
-        print("------------")
+        pdb.set_trace()
 
         self.steps_since_save += 1
         if self.steps_since_save == self.save_interval:
