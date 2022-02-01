@@ -194,7 +194,7 @@ if __name__== "__main__":
         wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
         wandb.config.update(args)
 
-    out_path = os.path.join(args.log_path, str(pd.datetime.today()) + "_bulk_data.h5")
+    out_path = os.path.join(args.log_path, str(pd.datetime.today()) + "_bulk_data")
 
     if args.gym_env == "feudal_timewise":
 
@@ -329,6 +329,8 @@ if __name__== "__main__":
             "env_config": vars(args)
         }
 
+        print("bug check 1")
+
         agent_keys = [f"lower_level_agent_{i}" for i in range(6)]
 
         callbacks = HierarchicalMultigridCallbacks(
@@ -340,11 +342,15 @@ if __name__== "__main__":
         config["callbacks"] = lambda: callbacks
         logger_creator = utils.custom_logger_creator(args.log_path)
 
+        print("bug check 2")
+
         trainer = sac.SACTrainer(
             env=FeudalMicrogridEnvOnlyLowerBaselineEnv, 
             config=config,
             logger_creator=logger_creator,
         )
+
+        print("bug check 3")
 
     elif args.gym_env=="socialgame_env":
         args.price_in_state = True
@@ -365,6 +371,8 @@ if __name__== "__main__":
             env=SocialGameEnvRLLib, 
             config=config,
             logger_creator=logger_creator,)
+
+    print("bug test 4")
 
     training_steps = 0 
 
