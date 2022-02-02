@@ -383,4 +383,9 @@ if __name__== "__main__":
         log = result # {name: result[name] for name in to_log}
         print(f"------- training step {training_steps}-------")
         print(log)
+        filtered_log = {name: [val for val in value if val !=0] 
+            for name, value in log["custom_metrics"].items()}
+        wandb.log(filtered_log)
+
+
 
