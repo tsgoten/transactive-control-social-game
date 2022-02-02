@@ -24,7 +24,7 @@
 #SBATCH --time=08:00:00
 #
 # Run 8 examples concurrently
-#SBATCH --array=0-2
+#SBATCH --array=0 
 
 BASE_DIR=/global/scratch/users/$USER
 

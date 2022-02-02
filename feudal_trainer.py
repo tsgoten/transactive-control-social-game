@@ -149,7 +149,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=50,
+    default=1,
 )
 parser.add_argument(
     "--bin_observation_space",
@@ -190,7 +190,7 @@ if __name__== "__main__":
         wandb.init(
             project="energy-demand-response-game", 
             entity="social-game-rl",
-            group=args.wandb_group)
+            group=args.wandb_group,)
         wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
         wandb.config.update(args)
 
