@@ -1,0 +1,26 @@
+[
+	{
+			"points_multiplier": 1,
+			"shiftable_load_frac": 0.7336394324132733,
+			"curtailable_load_frac": 0.7935064560736919,
+			"shiftByHours": 5,
+			"maxCurtailHours": 2,
+			"response_type_string": "cs"
+	},
+	{
+			"points_multiplier": 1,
+			"shiftable_load_frac": 0.7336394324132733,
+			"curtailable_load_frac": 0.7935064560736919,
+			"shiftByHours": 5,
+			"maxCurtailHours": 2,
+			"response_type_string": "cs"
+	},
+	{
+			"points_multiplier": 1,
+			"shiftable_load_frac": 0.7336394324132733,
+			"curtailable_load_frac": 0.7935064560736919,
+			"shiftByHours": 5,
+			"maxCurtailHours": 2,
+			"response_type_string": "cs"
+	}
+]
