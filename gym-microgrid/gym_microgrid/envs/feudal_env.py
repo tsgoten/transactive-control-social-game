@@ -15,7 +15,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym_socialgame.envs.socialgame_env import SocialGameEnvRLLib
 from gym_microgrid.envs.microgrid_env import MicrogridEnvRLLib
 from gym_microgrid.envs.multiagent_env import MultiAgentMicrogridEnv
-
+import wandb
 import pdb
 
 class FeudalSocialGameHourwise(MultiAgentEnv):
@@ -525,6 +525,15 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             "discharge_caps": 0,
             "discharges": 0
         }
+
+        ##### wandb.log
+        # wandb.log({
+        #     f"lower_level_agent_{i}_discharge_caps": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today,
+        #     f"lower_level_agent_{i}_discharges": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today
+        #     }
+        #     for i in range(6)
+        # })
+
 
         done = {"__all__": True}
         self.day = (self.day + 1) % 365 # TODO does this go here or in higher level step? 
