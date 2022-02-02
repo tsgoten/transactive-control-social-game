@@ -143,11 +143,11 @@ def pfl_hnet_update(agent, result, args, old_weights):
     for agent_id in curr_weights.keys():
         # calculating delta theta
         
-        delta_theta = OrderedDict({k: old_weights[agent_id][k] - torch.tensor(curr_weights[agent_id][k], device=device) for k in curr_weights[agent_id].keys()})
+        delta_theta = OrderedDict({k: old_weights[agent_id][k].to(device) - torch.tensor(curr_weights[agent_id][k], device=device) for k in curr_weights[agent_id].keys()})
 
         # calculating phi gradient
         hnet_grads = torch.autograd.grad(
-            list(old_weights[agent_id].values()), hnet.parameters(), grad_outputs=list(delta_theta.values())
+            [v.to(device) for v in old_weights[agent_id].values()], hnet.parameters(), grad_outputs=list(delta_theta.values())
         )
         # update hnet weights
         for p, g in zip(hnet.parameters(), hnet_grads):
@@ -396,7 +396,7 @@ parser.add_argument(
     "--bulk_log_interval",
     help="Interval at which to save bulk log information",
     type=int,
-    default=10000
+    default=50000
 )
 parser.add_argument(
     "--bin_observation_space",
