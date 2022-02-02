@@ -211,7 +211,7 @@ def train(agent, args):
         
         
         log = {name: result[name] for name in to_log}
-        print(log)
+        wandb.log(result['custom_metrics'])
         
 
     #list of different local agents
