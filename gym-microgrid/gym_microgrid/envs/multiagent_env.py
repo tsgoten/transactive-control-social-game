@@ -34,6 +34,10 @@ class BaseMultiAgentEnv(MultiAgentEnv):
     def use_smirl(self):
         return {str(i): env.use_smirl for i, env in enumerate(self.envs)}
 
+    @property
+    def last_metrics(self):
+        return {str(i): env.last_metrics for i, env in enumerate(self.envs)}
+    
     def step(self, action_dict):
         obs_dict = {}
         rew_dict = {}
@@ -60,7 +64,11 @@ class BaseMultiAgentEnv(MultiAgentEnv):
 
     def reset(self):
         """ Resets the environment on the current day """
-        ret = self._get_observation()
+        #ret = self._get_observation()
+        day = np.random.randint(0, 365)
+        for i in range(len(self.envs)):
+            self.envs[i].set_starting_day(day)
+        ret = {str(i): self.envs[i].reset() for i in range(len(self.envs))}
         return ret
 
     def render(self, mode='human'):
@@ -89,15 +97,25 @@ class MultiAgentMicrogridEnv(BaseMultiAgentEnv):
             energy_in_state: (Boolean) denoting whether (or not) to include the previous day's energy consumption within the state
             yesterday_in_state: (Boolean) denoting whether (or not) to append yesterday's price signal to the state
         """
-        self.check_valid_init_inputs(env_config["scenarios"], env_config["num_inner_steps"])
-        self.complex_batt_pv_scenarios = env_config["scenarios"]
+        # self.check_valid_init_inputs(env_config["scenarios"], env_config["num_inner_steps"])
+        # self.complex_batt_pv_scenarios = env_config["scenarios"]
         self.num_inner_steps = env_config["num_inner_steps"] 
         self.total_iter = 0
-        
-        self.configs = [deepcopy(env_config) for _ in self.complex_batt_pv_scenarios]
-        for i, config in enumerate(self.configs):
-            config["complex_batt_pv_scenario"] = int(self.complex_batt_pv_scenarios[i])
+        print("will try custom config")
+        print(env_config)
+        if env_config["custom_config"] is not None:
+            print("Using custom config")
+            with open(env_config["custom_config"], "r") as f:
+                data = json.load(f)
+                print(data)
+                self.configs = [deepcopy(env_config) for _ in range(len(data))]
+                for i in range(len(data)):
+                    self.configs[i].update(data[i])
+        #self.configs = [deepcopy(env_config) for _ in self.complex_batt_pv_scenarios]
+        # for i, config in enumerate(self.configs):
+        #     config["complex_batt_pv_scenario"] = int(self.complex_batt_pv_scenarios[i])
         self.envs = [MicrogridEnvRLLib(config) for config in self.configs]
+        self.n_nodes = len(self.envs)
         # self.envs = [SocialGameEnvRLLib(config) for config in self.configs]
         #WARNING: THESE WILL NOT WORK IF NOT ALL ENVS HAVE THE SAME OBS/ACTION SPACE
         self.observation_space = self.envs[0].observation_space

@@ -264,9 +264,17 @@ parser.add_argument(
 )
 parser.add_argument(
     "--num_workers",
-    help = "Number of cores you want to sacrifice to RLLib",
+    help = "Number of cores you want to \
+            sacrifice to RLLib to run envs in parallel",
     type=int,
     default=1
+)
+parser.add_argument(
+    "--num_mg_workers", 
+    help = "Number of cores each environment should dedicate to optimizing \
+            building responses in microgrid",
+    type=int,
+    default=2
 )
 parser.add_argument(
     "--action_space_string",
@@ -283,7 +291,7 @@ parser.add_argument(
     "--reward_function",
     help="reward function to test",
     type=str,
-    default="log_cost_regularized",
+    default="profit_maximizing",
     choices=["scaled_cost_distance", "log_cost_regularized", "log_cost", "scd", "lcr", "lc", "market_solving", "profit_maximizing"],
 )
 
@@ -293,8 +301,24 @@ parser.add_argument(
     help="Which Gym Environment you wish to use",
     type=str,
     choices=["socialgame", "microgrid", "microgrid_multi", "socialgame_multi"],
-    default="socialgame"
+    default="microgrid_multi"
 )
+parser.add_argument(
+    "--num_mg_optim_steps", 
+    help = "Number of optim steps for mg to optimize building response",
+    type=int,
+    default=10
+)
+parser.add_argument(
+    "--max_ep_steps", 
+    help = "Number of steps in each episode",
+    type=int,
+    default=7 # week-long trajectory
+)
+parser.add_argument("--starting_day",
+    help = "Which day for each environment to start on on resets",
+    type=int,
+    default=15)
 parser.add_argument(
     "--env_id",
     help="Environment ID for Gym Environment",
