@@ -143,6 +143,7 @@ class MicrogridEnv(gym.Env):
         self.last_metrics["money_to_utility"] = 0
         self.last_metrics["daily_violations"] = 0
         self.last_metrics["max_proportion"] = 0
+        self.last_metrics["reward"] = 0
         return self._get_observation()
 
     def _create_agents(self):
@@ -432,39 +433,15 @@ class MicrogridEnv(gym.Env):
         reward = self._get_reward_twoprices()
         self.prev_energy = self.energy_consumptions["Total"]
         num_violations, proportions = self._count_voltage_constraints()
+        self.last_metrics["reward"] = reward
         self.last_metrics["daily_violations"] = sum(num_violations.values()) / len(num_violations)
         self.last_metrics["max_proportion"] = max([max(p) for p in proportions.values()])
         self.last_metrics["total_batt_discharged_capacity"] = np.sum(list(batt_discharged_capacities.values()))
         self.last_metrics["total_discharged_time"] = np.sum(list(batt_discharged_times_n.values()))
-        # self.daily_violations.append(sum(num_violations.values()) / len(num_violations))
-        # self.max_proportion.append(max([max(p) for p in proportions.values()]))
-                  
-        # self.total_batt_discharged_capacities.append(np.sum(list(batt_discharged_capacities.values())))
-        # self.total_discharged_times.append(np.sum(list(batt_discharged_times_n.values())))
-
         if self.use_smirl:
             raise NotImplementedError
             # self.buffer.add(next_obs)
         
-        # if self.timestep == self.max_episode_steps - 1:
-        #     wandb.log({"Money_From_Prosumers": wandb.Histogram(self.money_from_prosumers),
-        #                "Money To Utility": wandb.Histogram(self.money_to_utility),
-        #                "Total Batt Discharged Capacities": wandb.Histogram(self.total_batt_discharged_capacities),
-        #                "Total Discharged Times": wandb.Histogram(self.total_discharged_times),
-        #                "Mean Daily Violations Per Building": wandb.Histogram(self.daily_violations),
-        #                "Max Transformer Capacity Proportion": wandb.Histogram(self.max_proportion)}, commit=False)
-
-        # violations, proportions_matched = self._count_voltage_constraints()
-        # voltage_risks = max(max(v) for v in proportions_matched.values()) ### TODO SAM: is this a good measure?
-
-        # if self.ancillary_logger:
-        #     self.ancillary_logger.log({"Money_From_Prosumers":  self.money_from_prosumers[-1],
-        #                 "Money To Utility":  self.money_to_utility[-1],
-        #                 "Total Batt Discharged Capacities":  self.total_batt_discharged_capacities[-1],
-        #                 "Total Discharged Times":  self.total_discharged_times[-1],
-        #                 "Mean Daily Violations Per Building": (self.daily_violations[-1]),
-        #                 "Max Transformer Capacity Proportion": (self.max_proportion[-1]),
-        #                 "Voltage Risks": voltage_risks})
 
         self.timestep += 1
         self.day = (self.day + 1) % 365
