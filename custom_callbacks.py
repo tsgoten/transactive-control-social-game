@@ -190,7 +190,8 @@ class MultiAgentCallbacks(DefaultCallbacks):
                     "money_from_prosumers",
                     "money_to_utility",
                     "daily_violations",
-                    "max_proportion"]
+                    "max_proportion",
+                    "total_prosumer_cost"]
         #Observation Logging not yet implemented
         # for i in range(obs_dim):
         #     self.cols.append("observation_" + str(i))

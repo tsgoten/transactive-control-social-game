@@ -143,6 +143,7 @@ class MicrogridEnv(gym.Env):
         self.last_metrics["money_to_utility"] = 0
         self.last_metrics["daily_violations"] = 0
         self.last_metrics["max_proportion"] = 0
+        self.last_metrics["total_prosumer_cost"] = 0
         self.last_metrics["reward"] = 0
         return self._get_observation()
 
@@ -356,14 +357,21 @@ class MicrogridEnv(gym.Env):
             np.dot(np.minimum(0, total_consumption * test_sell_to_grid), sellprice_grid))
 
         money_from_prosumers = 0
+        grid_money_from_prosumers = 0
         for prosumerName in self.energy_consumptions:
             if prosumerName != "Total":
+                # Net money to microgrid from prosumers
                 money_from_prosumers += (
                     np.dot(np.maximum(0, self.energy_consumptions[prosumerName]) * test_buy_from_grid, self.buyprice) - 
                     np.dot(np.minimum(0, self.energy_consumptions[prosumerName]) * test_sell_to_grid, self.sellprice))
+                # Net money to external grid from prosumers (not including microgrid transactions w utility)
+                grid_money_from_prosumers += (
+                    np.dot(np.maximum(0, self.energy_consumptions[prosumerName]) * np.logical_not(test_buy_from_grid), self.buyprice) - 
+                    np.dot(np.minimum(0, self.energy_consumptions[prosumerName]) * np.logical_not(test_sell_to_grid), self.sellprice))
 
         self.last_metrics["money_from_prosumers"] = money_from_prosumers
         self.last_metrics["money_to_utility"] = money_to_utility
+        self.last_metrics["total_prosumer_cost"] = grid_money_from_prosumers + money_from_prosumers
 
         # self.money_from_prosumers.append(money_from_prosumers)
         # self.money_to_utility.append(money_to_utility)
