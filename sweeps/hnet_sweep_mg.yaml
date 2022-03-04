@@ -1,0 +1,58 @@
+command:
+- ${env}
+- python
+- ${program}
+- -w
+- --gym_env=microgrid_multi
+- --custom_config=configs/mg.json
+- --exp_name=mg_baseline_sweep
+- --num_gpus=1
+- --num_mg_workers=2
+- --num_steps=10000
+- --learning_rate=4.739161665737028e-05
+- --ppo_clip_param=0.8382335628495309
+- --ppo_num_sgd_iter=1
+- ${args}
+method: bayes
+metric:
+  goal: maximize
+  name: agg/reward_mean_mean
+name: MG BASELINE SWEEP
+parameters:
+  custom_config:
+    values:
+      ['configs/mg_configs/simple_manyagents.json',
+        'configs/mg_configs/complex_manyagents.json',
+        'configs/mg_configs/cbps_2_1.json',
+        'configs/mg_configs/cbps_2_3.json',
+        'configs/mg_configs/cbps_2_4.json',
+        'configs/mg_configs/cbps_2_5.json']
+  hnet_embedding_dim:
+    distribution: int_uniform
+    max: 512
+    min: 16
+  hnet_lr:
+    distribution: log_uniform
+    max: -1
+    min: -10
+  hnet_num_hidden:
+    distribution: int_uniform
+    max: 512
+    min: 8
+  hnet_num_layers:
+    distribution: int_uniform
+    max: 6
+    min: 1
+  hnet_num_local_steps:
+    distribution: int_uniform
+    max: 100
+    min: 1
+  batch_size:
+    distribution: int_uniform
+    max: 1000
+    min: 1
+  learning_rate:
+    distribution: log_uniform
+    max: -5
+    min: -15
+program: ExperimentRunner.py

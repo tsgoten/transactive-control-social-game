@@ -30,13 +30,13 @@ def add_args(parser):
         "--num_mg_optim_steps",
         nargs='+',
         type=int,
-        default = [10000],
+        default = [10],
         help="List of num_mg_optim_steps; if len < num_envs, use first as default")
     parser.add_argument(
         "--max_episode_steps",
         nargs='+',
         type=int,
-        default = [365],
+        default = [7],
         help="List of max_episode_steps; if len < num_envs, use first as default")
     return parser
     
