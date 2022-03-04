@@ -169,7 +169,7 @@ class MicrogridEnv(gym.Env):
             pvsizes = [100]*self.number_of_participants
 
         ## small PV sizes
-        elif self.complwex_batt_pv_scenario == 2: 
+        elif self.complex_batt_pv_scenario == 2: 
             pvsizes = [ 0, 10, 100, 10, 0, 0, 0, 55, 10, 10 ]
             battery_nums = [ 0, 0, 50, 30, 50, 0, 0, 10, 40, 50 ]
 
