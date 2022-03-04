@@ -9,7 +9,6 @@ command:
 - --num_gpus=1
 - --num_mg_workers=2
 - --num_steps=10000
-- --learning_rate=4.739161665737028e-05
 - --ppo_clip_param=0.8382335628495309
 - --ppo_num_sgd_iter=1
 - ${args}
