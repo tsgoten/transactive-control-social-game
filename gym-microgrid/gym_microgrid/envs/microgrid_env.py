@@ -115,7 +115,9 @@ class MicrogridEnv(gym.Env):
         self.pool=Pool(processes=self.num_workers)
 
         self.last_metrics = {}
-        
+        #Set initial value for logging
+        self.last_metrics["num_steps_sampled"] = 0
+
         self.reset()
 
         print("\n Microgrid Environment Initialized! Have Fun! \n")
@@ -127,6 +129,9 @@ class MicrogridEnv(gym.Env):
     
     def reset(self):
         """ Resets the environment on the current day """
+        #Add timestep to count before it gets reset
+        self.last_metrics["num_steps_sampled"] += self.timestep if hasattr(self, "timestep") else 0
+
         #Cur_iter counts length of trajectory for current step (i.e. cur_iter = i^th hour in a 10-hour trajectory)
         #For our case cur_iter just flips between 0-1 (b/c 1-step trajectory)
         self.timestep = 0
@@ -145,6 +150,7 @@ class MicrogridEnv(gym.Env):
         self.last_metrics["max_proportion"] = 0
         self.last_metrics["total_prosumer_cost"] = 0
         self.last_metrics["reward"] = 0
+        
         return self._get_observation()
 
     def _create_agents(self):

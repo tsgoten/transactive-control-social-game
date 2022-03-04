@@ -191,7 +191,9 @@ class MultiAgentCallbacks(DefaultCallbacks):
                     "money_to_utility",
                     "daily_violations",
                     "max_proportion",
-                    "total_prosumer_cost"]
+                    "total_prosumer_cost",
+                    "reward",
+                    "num_steps_sampled"]
         #Observation Logging not yet implemented
         # for i in range(obs_dim):
         #     self.cols.append("observation_" + str(i))
@@ -283,6 +285,7 @@ class MultiAgentCallbacks(DefaultCallbacks):
         # Log aggregate metric statistics
         for name, metric in agg_metrics.items():
             metric = np.array(metric)
+            episode.custom_metrics[name + "_sum"] = np.sum(metric)
             episode.custom_metrics[name + "_mean"] = np.mean(metric)
             episode.custom_metrics[name + "_std"] = np.std(metric)
             episode.custom_metrics[name + "_min"] = np.min(metric)

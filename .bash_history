@@ -176,3 +176,33 @@ wandb agent social-game-rl/energy-demand-response-game/wbxyfri0
 python ExperimentRunner.py -w --gym_env=socialgame_multi --hnet_embedding_dim=338 --hnet_lr=0.0005578432454133512 --hnet_num_hidden=488 --hnet_num_layers=4 --custom_config=configs/duplicate_cs.json --exp_name=dup_3 --algo=ppo --use_hnet
 exit
 exit
+git add -A
+git status
+git commit -m "Add automatic dockerhub push"
+git push
+git status
+git branch
+ls
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+python ExperimentRunner.py --gym_env=microgrid_multi --num_mg_workers=7 -w --custom_config=configs/mg.json
+exit
+exit
+wandb agent social-game-rl/energy-demand-response-game/kt46ny2k
+python
+exit
+pip uninstall wandb
+pip install wandb==0.12.11
+exit

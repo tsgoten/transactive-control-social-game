@@ -86,10 +86,13 @@ def get_agent(args):
         #merge config with default config (with ours overwriting in case of clashes)
         config = {**default_config, **config}
         config["framework"] = "torch"
-        config["train_batch_size"] = 256
+        config["train_batch_size"] = args.batch_size
         config["sgd_minibatch_size"] = 16
-        config["lr"] = 3e-4
-        config["clip_param"] = 0.3
+        config["lr"] = args.learning_rate
+        config["lambda"] = 0
+        config["clip_param"] = args.ppo_clip_param
+        config["vf_clip_param"]=5000
+        config["num_sgd_iter"] = args.ppo_num_sgd_iter
         config["num_gpus"] =  args.num_gpus # this may throw an error
         config["num_workers"] = args.num_workers
         config["env_config"] = vars(args)
@@ -366,9 +369,20 @@ parser.add_argument(
     "--batch_size",
     help="Batch Size for sampling from replay buffer",
     type=int,
-    default=5,
-    choices=[i for i in range(1, 30)],
+    default=256,
+    #choices=[i for i in range(1, 30)],
 )
+parser.add_argument(
+    "--ppo_num_sgd_iter",
+    help="num_sgd_iter parameter for PPO",
+    type=int,
+    default=30)
+
+parser.add_argument(
+    "--ppo_clip_param",
+    help="clip_param parameter for PPO",
+    type=float,
+    default=30)
 parser.add_argument(
     "--one_day",
     help="Specific Day of the year to Train on (default = 15, train on day 15)",
