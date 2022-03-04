@@ -206,3 +206,8 @@ exit
 pip uninstall wandb
 pip install wandb==0.12.11
 exit
+import wandb
+python
+wandb agent social-game-rl/energy-demand-response-game/kt46ny2k
+wandb agent social-game-rl/energy-demand-response-game/mltrraal
+exit
