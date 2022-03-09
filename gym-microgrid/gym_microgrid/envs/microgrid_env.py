@@ -339,6 +339,39 @@ class MicrogridEnv(gym.Env):
             return buyprice, sellprice
 
 
+    def _count_voltage_constraints(self, energy_consumptions):
+        """
+        Purpose: Counts the number of times energy expenditure exceeds the power rating 
+        of the transformer. v0 assumes fixed charging throughout the hour and assumes
+        that transformers are sized up to ~1.25 of the max power observed in baseline
+        energy consumption per building
+
+        Args:
+            energy_consumptions: dict created in step, which lists
+                buildings' energy consumptions after the battery discharges and charges
+        
+        Returns:
+            violations: count of voltage constraint violations throughout the day
+            proportion_matched: continuous proportion of power rating per hour 
+        """
+        buildings = self.prosumer_dict.names()
+        transformer_ratings = [50, 65, 600, 150, 200, 150, 150, 450, 175, 600]
+        transformer_dict = {
+            buildings[i]: transformer_ratings[i] for i in list(range(len(buildings)))}
+
+        violations = {}
+        proportion_matched = {}
+        for prosumer_name in energy_consumptions:
+            violations[prosumer_name] = np.sum(
+                np.array(energy_consumptions[prosumer_name]) > transformer_ratings[prosumer_name])
+            proportion_matched[prosumer_name] = (
+                np.array(energy_consumptions[prosumer_name]) / transformer_ratings[prosumer_name]
+            )
+        
+        return violations, proportion_matched
+        
+
+
     def _simulate_humans(self, day, price):
         """
         Purpose: Gets energy consumption from players given action from agent

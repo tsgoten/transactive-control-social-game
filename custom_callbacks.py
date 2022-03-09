@@ -432,6 +432,8 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
         print("-------------")
         print("------------")
 
+        
+
         self.steps_since_save += 1
         if self.steps_since_save == self.save_interval:
             self.save()
