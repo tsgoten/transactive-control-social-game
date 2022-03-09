@@ -1,4 +1,5 @@
 import argparse
+from lib2to3.pgen2.grammar import opmap_raw
 import gym
 import numpy as np
 import os
@@ -13,6 +14,7 @@ import ray
 import ray.rllib.agents.ppo as ray_ppo
 from ray.rllib.examples.models.centralized_critic_models import \
     CentralizedCriticModel, TorchCentralizedCriticModel
+from ray.rllib.models import MODEL_DEFAULTS
 from ray.rllib.models import ModelCatalog
 from pfl_hypernet import PFL_Hypernet
 from ccppo import CCPPOTorchPolicy, CCTrainer
@@ -59,16 +61,42 @@ def get_agent(args):
                         lr = args.hnet_lr,
                         device = device)
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
+
         if args.algo=="ppo":
+
+            ####################################
+            # customizing multiagent policies  #
+            ####################################
+
+            temp_config = ray_ppo.DEFAULT_CONFIG.copy()
+            temp_config["train_batch_size"] = args.batch_size
+            temp_config["sgd_minibatch_size"] = 16
+            temp_config["lr"] = args.learning_rate
+            temp_config["lambda"] = 0
+            temp_config["clip_param"] = args.ppo_clip_param
+            temp_config["vf_clip_param"]=5000
+            temp_config["num_sgd_iter"] = args.ppo_num_sgd_iter
+            temp_config["num_gpus"] =  args.num_gpus # this may throw an error
+            temp_config["num_workers"] = args.num_workers
+
+            model_params = MODEL_DEFAULTS.copy()
+            model_params["fcnets_hiddens"] = [args.sizes] * args.n_layers
+            model_params["fcnet_activation"] = args.fcnet_activation
+            temp_config["model"] = model_params
+            
+            custom_policy = ray_ppo.PPOTorchPolicy(
+                config = temp_config, 
+            )
+
             #pass
             config["multiagent"] = {
-                "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
+                "policies": {str(i): (custom_policy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
                 "policy_mapping_fn": lambda agent_id, episode=None: agent_id
             }
         elif args.algo=="single_ppo":
             print("USING SINGLE PPO MODEL")
             config["multiagent"] = {
-                "policies": {'0': (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) },
+                "policies": {'0': (custom_policy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) },
                 "policy_mapping_fn": lambda agent_id, episode=None: '0'
             }
         elif args.algo=="ccppo":
@@ -99,7 +127,15 @@ def get_agent(args):
         config["env"] = environments[args.gym_env]
         # obs_dim = np.sum([args.energy_in_state, args.price_in_state])
         obs_dim = math.prod(obs_space.shape)
-            
+
+        #########################################################
+        # Specify network parameters for policy functions #
+        #########################################################
+        model_params = MODEL_DEFAULTS.copy()
+        model_params["fcnets_hiddens"] = [args.sizes] * args.n_layers
+        model_params["fcnet_activation"] = args.fcnet_activation
+        config["model"] = model_params
+
         out_path = os.path.join(args.log_path, "bulk_data.h5")
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
             callbacks = MultiAgentCallbacks(log_path=out_path, save_interval=args.bulk_log_interval, 
@@ -296,6 +332,16 @@ parser.add_argument(
     type=str,
     default="profit_maximizing",
     choices=["scaled_cost_distance", "log_cost_regularized", "log_cost", "scd", "lcr", "lc", "market_solving", "profit_maximizing"],
+)
+parser.add_argument(
+    "--sizes",
+    help="number of nodes in policy networks",
+    default=256
+)
+parser.add_argument(
+    "--n_layers",
+    help="number of neural layers",
+    default=2
 )
 
 # Environment Arguments
