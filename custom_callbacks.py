@@ -221,7 +221,8 @@ class MultiAgentCallbacks(DefaultCallbacks):
 
             self.steps_since_save=0
         except ValueError:
-            breakpoint()
+            pass
+            #breakpoint()
 
 
     def on_episode_start(self, *, worker: RolloutWorker, base_env: BaseEnv,
