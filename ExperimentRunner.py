@@ -1,5 +1,6 @@
 import argparse
 from lib2to3.pgen2.grammar import opmap_raw
+from statistics import mode
 import gym
 import numpy as np
 import os
@@ -52,15 +53,7 @@ def get_agent(args):
     if args.num_gpus > 0:
         device = "cuda"
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
-        if args.use_hnet:
-            hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes,
-                        embedding_dim = args.hnet_embedding_dim, 
-                        num_layers = args.hnet_num_layers,
-                        num_hidden = args.hnet_num_hidden,
-                        out_params_path = args.hnet_out_params_path,
-                        lr = args.hnet_lr,
-                        device = device)
-            hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
+        
         if args.algo=="ppo":
             #pass
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
@@ -70,6 +63,7 @@ def get_agent(args):
                                                                                      "number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
                 "policy_mapping_fn": lambda agent_id, episode=None: agent_id
             }
+            
         elif args.algo=="single_ppo":
             print("USING SINGLE PPO MODEL")
             config["multiagent"] = {
@@ -129,22 +123,35 @@ def get_agent(args):
         if args.wandb:
             wandb.save(out_path)
         if args.algo == "ppo" or "single_ppo":
-            return ray_ppo.PPOTrainer(
+            
+            ret = ray_ppo.PPOTrainer(
                 config = config, 
                 env = environments[args.gym_env],
                 logger_creator = logger_creator
             )
+            
         else:
             print("RUNNING CCPPO")
             ModelCatalog.register_custom_model(
                 "cc_model", TorchCentralizedCriticModel
                 if config["framework"] == "torch" else CentralizedCriticModel)
             config["model"] = {"custom_model": "cc_model",}
-            return CCTrainer(
+            ret =  CCTrainer(
                 config = config, 
                 env = environments[args.gym_env],
                 logger_creator = logger_creator
             )
+        if args.use_hnet:
+            shapes = {k:  v.shape for k, v in list(ret.get_weights().values())[0].items()}
+            hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes,
+                        embedding_dim = args.hnet_embedding_dim, 
+                        num_layers = args.hnet_num_layers,
+                        num_hidden = args.hnet_num_hidden,
+                        out_params_shapes = shapes,
+                        lr = args.hnet_lr,
+                        device = device)
+            hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
+        return ret
 
     # Add more algorithms here. 
 
@@ -225,7 +232,6 @@ def train(agent, args):
             print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
             result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         
-        breakpoint()
         log = {name: result[name] for name in to_log}
         wandb.log(result['custom_metrics'])
         

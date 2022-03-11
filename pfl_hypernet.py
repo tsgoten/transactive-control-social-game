@@ -3,7 +3,7 @@ import torch.nn as nn
 from collections import OrderedDict
 
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_path, lr, device):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
@@ -12,10 +12,7 @@ class PFL_Hypernet(nn.Module):
         self.embedding_dim = embedding_dim
         self.device = device
         
-
-        f = open(out_params_path, "r")
-        param_string = f.read()
-        self.out_params_dict = eval(param_string)
+        self.out_params_dict = out_params_shapes
         self.out_dim = self.calculate_out_dim()
         shifts = nn.Parameter(torch.zeros(self.out_dim, device=self.device))
         scales = nn.Parameter(torch.ones(self.out_dim, device=self.device))
