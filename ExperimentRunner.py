@@ -63,8 +63,11 @@ def get_agent(args):
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         if args.algo=="ppo":
             #pass
+            #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
             config["multiagent"] = {
-                "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
+                "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
+                                                                                     "fcnet_activation": args.fcnet_activation,
+                                                                                     "number_of_agents": dummy_env.n_nodes}) for i, scenario in enumerate(range(dummy_env.n_nodes))},
                 "policy_mapping_fn": lambda agent_id, episode=None: agent_id
             }
         elif args.algo=="single_ppo":
@@ -99,6 +102,14 @@ def get_agent(args):
         config["num_workers"] = args.num_workers
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
+        #########################################################
+        # Specify network parameters for policy functions #
+        #########################################################
+        model_params = {}
+        model_params["fcnet_hiddens"] = [args.sizes] * args.n_layers
+        model_params["fcnet_activation"] = args.fcnet_activation
+
+        config["model"] = model_params
         # obs_dim = np.sum([args.energy_in_state, args.price_in_state])
         obs_dim = math.prod(obs_space.shape)
             
@@ -214,7 +225,7 @@ def train(agent, args):
             print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
             result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
         
-        
+        breakpoint()
         log = {name: result[name] for name in to_log}
         wandb.log(result['custom_metrics'])
         
