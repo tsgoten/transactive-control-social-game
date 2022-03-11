@@ -1,4 +1,5 @@
 import argparse
+from lib2to3.pgen2.grammar import opmap_raw
 import gym
 import numpy as np
 import os
@@ -13,6 +14,7 @@ import ray
 import ray.rllib.agents.ppo as ray_ppo
 from ray.rllib.examples.models.centralized_critic_models import \
     CentralizedCriticModel, TorchCentralizedCriticModel
+from ray.rllib.models import MODEL_DEFAULTS
 from ray.rllib.models import ModelCatalog
 from pfl_hypernet import PFL_Hypernet
 from ccppo import CCPPOTorchPolicy, CCTrainer
@@ -519,6 +521,25 @@ parser.add_argument(
     help = "Number of local steps between hnet updates",
     type=int,
     default=1
+)
+parser.add_argument(
+    "--sizes",
+    help="number of nodes in policy networks",
+    default=256,
+    type=int
+)
+parser.add_argument(
+    "--n_layers",
+    help="number of neural layers",
+    type=int,
+    default=2
+)
+parser.add_argument(
+    "--fcnet_activation",
+    type=str,
+    help="activation function of policy neurons",
+    choices = ["relu", "tanh"],
+    default="tanh"
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 

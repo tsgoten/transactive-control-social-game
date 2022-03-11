@@ -211,3 +211,13 @@ python
 wandb agent social-game-rl/energy-demand-response-game/kt46ny2k
 wandb agent social-game-rl/energy-demand-response-game/mltrraal
 exit
+git checkout pfl_newmicrogrid
+git stash
+git checkout pfl_newmicrogrid
+python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg.json --exp_name=mg_baseline_sweep --num_gpus=1 --num_mg_workers=2 --num_steps=10000 --learning_rate=5.247281463207115e-05 --batch_size=16 --num_workers=1 
+git status
+git pull
+python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg.json --exp_name=mg_baseline_sweep --num_gpus=1 --num_mg_workers=2 --num_steps=10000 --learning_rate=5.247281463207115e-05 --batch_size=16 --num_workers=1 
+git checkout d311fa5024aa06998704f2c1deefb6eb7f3591f6
+python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg.json --exp_name=mg_baseline_sweep --num_gpus=1 --num_mg_workers=2 --num_steps=10000 --learning_rate=5.247281463207115e-05 --batch_size=16 --num_workers=1 
+exit
