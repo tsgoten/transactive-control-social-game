@@ -1,0 +1,43 @@
+command:
+- ${env}
+- python
+- ${program}
+- -w
+- --gym_env=microgrid_multi
+- --custom_config=configs/mg_configs/simple_manyagents.json
+- --num_gpus=1
+- --num_mg_workers=2
+- --num_steps=10000
+- ${args}
+method: bayes
+metric:
+  goal: maximize
+  name: agg/reward_mean_mean
+name: Simple Many Agents Baseline
+parameters:
+  learning_rate:
+    distribution: log_uniform
+    max: 0
+    min: -10
+  ppo_clip_param:
+    distribution: uniform
+    max: 1
+    min: 0.01
+  ppo_num_sgd_iter:
+    distribution: int_uniform
+    max: 30
+    min: 1
+  batch_size:
+    distribution: q_log_uniform
+    min: 0
+    max: 8
+  n_layers:
+    distribution: int_uniform
+    min: 1
+    max: 5
+  sizes:
+    distribution: q_log_uniform
+    min: 0
+    max: 7
+  
+program: ExperimentRunner.py
