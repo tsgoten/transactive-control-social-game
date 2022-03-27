@@ -220,7 +220,7 @@ class MultiAgentCallbacks(DefaultCallbacks):
                 v.clear()
 
             self.steps_since_save=0
-        except ValueError:
+        except:
             pass
             #breakpoint()
 
