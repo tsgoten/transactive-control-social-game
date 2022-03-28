@@ -5,7 +5,7 @@ cd ..
 cd gym-socialgame
 pip install -e .
 cd ..
-pip install tensorflow
-pip install keras
-pip install tensorflow-probability
-pip install tensorflow-gpu
+#pip install tensorflow
+#pip install keras
+#pip install tensorflow-probability
+#pip install tensorflow-gpu
