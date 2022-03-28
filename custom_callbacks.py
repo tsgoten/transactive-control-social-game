@@ -207,7 +207,7 @@ class MultiAgentCallbacks(DefaultCallbacks):
             for col in self.cols:
                 self.log_vals[f"{agent}/{col}"] = []
         self.log_vals["step"] = []
-
+        self.steps_since_save = 0
         self.unwrap_env = unwrap_env
         print(f"Initialized MULTI Agent Custom Callbacks for {self.num_agents} Agents.")
 
