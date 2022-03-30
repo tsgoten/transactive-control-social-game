@@ -3,7 +3,7 @@ import torch.nn as nn
 from collections import OrderedDict
 
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device, input_size=1):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
@@ -11,6 +11,7 @@ class PFL_Hypernet(nn.Module):
         self.n_nodes = n_nodes
         self.embedding_dim = embedding_dim
         self.device = device
+        self.input_size = input_size
         
         self.out_params_dict = out_params_shapes
         self.out_dim = self.calculate_out_dim()
@@ -24,15 +25,18 @@ class PFL_Hypernet(nn.Module):
 
         self.layers = [self.embedding]
         if num_layers == 1:
-            self.layers.append(nn.Linear(embedding_dim, self.out_dim))
+            self.layers.append(nn.Linear(embedding_dim + input_size - 1, self.out_dim))
         else:
-            self.layers.append(nn.Linear(embedding_dim, num_hidden))
+            self.layers.append(nn.Linear(embedding_dim + input_size - 1, num_hidden))
             for i in range(1, num_layers - 1):
                 self.layers.append(nn.ReLU())
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
             self.layers.append(nn.ReLU())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
-        self.net = nn.Sequential(*self.layers).to(device)
+        if self.input_size != 1:
+            self.net = nn.Sequential(*self.layers[1:]).to(device)
+        else:
+            self.net = nn.Sequential(*self.layers).to(device)
         
     def calculate_out_dim(self):
         dim = 0
@@ -83,4 +87,9 @@ class PFL_Hypernet(nn.Module):
         assert lr > 0, "lr <= 0"
         
     def forward(self, x):
-        return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
+        # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
+        if self.input_size != 1:
+            embed = self.layers[0](torch.tensor(x[:, 0]).to(self.device)) # I'm not sure if this actually works
+            return self.create_weight_dict(self.net(torch.hstack(embed, torch.tensor(x[:, 1:]).to(self.device))))
+        else:
+            return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
