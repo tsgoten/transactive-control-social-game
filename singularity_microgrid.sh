@@ -43,7 +43,7 @@ if test -f austin_docker.sif; then
 else
   singularity build austin_docker.sif docker://lucasspangher/socialgame_v1:austin
 fi
-singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c './singularity_preamble_new.sh && wandb agent social-game-rl/energy-demand-response-game/pvtar6vx --count 1'
+singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c './singularity_preamble_new.sh && python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg_configs/simple_manyagents.json --num_gpus=1 --num_mg_workers=2 --num_steps=10000 --batch_size=16 --learning_rate=0.0005260844671580459 --n_layers=1 --ppo_clip_param=0.607258611223942 --ppo_num_sgd_iter=6 --sizes=4 --use_agg_data'
 
 
 
