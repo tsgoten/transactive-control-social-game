@@ -60,7 +60,7 @@ def get_agent(args):
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
             if args.use_agg_data:
                 for i, e in enumerate(dummy_env.envs):
-                    agg_data = [i] + [pv for pv in e.pvsizes] + [b for b in e.batterynums]
+                    agg_data = [i] + [pv for pv in e.pv_sizes] + [b for b in e.battery_sizes]
                     agg_data_dict[str(i)] = torch.tensor(agg_data).to(device=device)
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
