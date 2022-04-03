@@ -89,7 +89,7 @@ class PFL_Hypernet(nn.Module):
     def forward(self, x):
         # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
         if self.input_size != 1:
-            embed = self.layers[0](torch.tensor(x[:, 0]).to(self.device)) # I'm not sure if this actually works
-            return self.create_weight_dict(self.net(torch.hstack(embed, torch.tensor(x[:, 1:]).to(self.device))))
+            embed = self.layers[0](torch.tensor(x[0]).to(self.device)) # I'm not sure if this actually works
+            return self.create_weight_dict(self.net(torch.hstack(embed, torch.tensor(x[1:]).to(self.device))))
         else:
             return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
