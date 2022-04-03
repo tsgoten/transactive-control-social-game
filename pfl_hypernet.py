@@ -34,6 +34,7 @@ class PFL_Hypernet(nn.Module):
             self.layers.append(nn.ReLU())
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
         if self.input_size != 1:
+            self.embedding = self.embedding.to(device)
             self.net = nn.Sequential(*self.layers[1:]).to(device)
         else:
             self.net = nn.Sequential(*self.layers).to(device)
@@ -89,7 +90,7 @@ class PFL_Hypernet(nn.Module):
     def forward(self, x):
         # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
         if self.input_size != 1:
-            embed = self.layers[0](torch.tensor(x[0]).to(self.device)) # I'm not sure if this actually works
+            embed = self.layers[0](torch.tensor(x[0]).to(self.device))
             return self.create_weight_dict(self.net(torch.hstack(embed, torch.tensor(x[1:]).to(self.device))))
         else:
             return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
