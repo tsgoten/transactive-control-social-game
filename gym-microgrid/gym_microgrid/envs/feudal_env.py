@@ -574,20 +574,38 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         total_consumption = np.sum([i for i in microgrids_energy_consumptions.values()], axis=0)
 
-        money_to_utility = (
-            np.dot(np.maximum(0, total_consumption), buyprice_grid) + 
-            np.dot(np.minimum(0, total_consumption), sellprice_grid))
-
         money_from_prosumers = 0
 
+        test_buy_from_grid = higher_aggregator_buyprice < buyprice_grid # Bool vector containing when prosumers buy from microgrid
+        test_sell_to_grid = higher_aggregator_sellprice > sellprice_grid # Bool vector containing when prosumers sell to microgrid
+        
+        if np.all(higher_aggregator_buyprice == buyprice_grid):
+            test_buy_from_grid = np.repeat(.5, buyprice_grid.shape)
+        if np.all(higher_aggregator_sellprice == sellprice_grid):
+            test_sell_to_grid = np.repeat(.5, sellprice_grid.shape)
+
+        money_to_utility = (np.dot(np.maximum(0, total_consumption * test_buy_from_grid), buyprice_grid) - 
+            np.dot(np.minimum(0, total_consumption * test_sell_to_grid), sellprice_grid))
+
+        money_from_prosumers = 0
+        grid_money_from_prosumers = 0
+        
         for prosumerName, consumptions in microgrids_energy_consumptions.items():
-            money_from_prosumers += (
-                (np.dot(np.maximum(0, consumptions), higher_aggregator_buyprice) + 
-                np.dot(np.minimum(0, consumptions), higher_aggregator_sellprice))
-            )
+            if prosumerName != "Total":
+                money_from_prosumers += (
+                    np.dot(np.maximum(0, consumptions) * test_buy_from_grid, higher_aggregator_buyprice) -     
+                    np.dot(np.minimum(0, consumptions) * test_sell_to_grid, higher_aggregator_sellprice))
 
+                # Net money to external grid from prosumers (not including microgrid transactions w utility)
+                grid_money_from_prosumers += (
+                    np.dot(np.maximum(0, consumptions) * np.logical_not(test_buy_from_grid), higher_aggregator_buyprice) - 
+                    np.dot(np.minimum(0, consumptions) * np.logical_not(test_sell_to_grid), higher_aggregator_sellprice))
+
+        self.money_from_prosumers = money_from_prosumers
+        self.money_to_utility = money_to_utility
+        self.total_prosumer_cost = grid_money_from_prosumers + money_from_prosumers
+        
         total_reward = money_from_prosumers - money_to_utility
-
         print(f"total_reward = {total_reward}")
         
         return total_reward
