@@ -26,7 +26,7 @@ def pool_fn(x):
         day, buyprice, sellprice)
     return prosumer_name, energy, batt_times, batt_cap  # what you'd think x + *y does
 
-class MicrogridEnv(gym.Env):
+class MicrogridEnvRLLib(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self,
