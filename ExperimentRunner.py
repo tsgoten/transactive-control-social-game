@@ -64,7 +64,7 @@ def get_agent(args):
         config["env_config"] = vars(args)
         config["env"] = environments[args.gym_env]
         # obs_dim = np.sum([args.energy_in_state, args.price_in_state])
-        obs_dim = math.prod(obs_space.shape)
+        obs_dim = np.prod(obs_space.shape)
             
         out_path = os.path.join(args.log_path, "bulk_data.h5")
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:

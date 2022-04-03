@@ -10,3 +10,4 @@ cd ..
 pip install tensorflow 
 pip install tensorflow-probability 
 pip install tensorflow-gpu
+pip install wandb

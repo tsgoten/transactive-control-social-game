@@ -67,3 +67,35 @@ python ExperimentRunner.py --gym_env=microgrid_multi -w --number_of_participants
 python ExperimentRunner.py --gym_env=microgrid_multi -w --reward_function=profit_maximizing --number_of_participants=2 --scenarios 1 2
 exit
 exit
+ls
+python ExperimentRunner.py --gym_env=socialgame_multi
+python
+exit
+python
+exit
+ExperimentRunner.py -w --gym_env=socialgame_multi
+python ExperimentRunner.py -w --gym_env=socialgame_multi
+pip install -U lxml
+python ExperimentRunner.py -w --gym_env=socialgame_multi
+exit
+ls
+python feudal_trainer.py 
+more requirements.txt 
+python
+pip install torch
+python
+pip install -U lxml
+pip freeze 
+exit
+ls
+python feudal_trainer.py 
+pip freeze
+pip install torch==1.9
+python
+pip install -U lxml
+sudo pip install -U lxml
+pip install lxml==4.6
+python
+pip install lxml==4.4.2
+python
+exit
