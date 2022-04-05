@@ -53,6 +53,8 @@ def get_agent(args):
     config = {}
     if args.num_gpus > 0:
         device = "cuda"
+    else:
+        device = 'cpu'
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         
         if args.algo=="ppo":
