@@ -158,7 +158,8 @@ def get_agent(args):
                         out_params_shapes = shapes,
                         lr = args.hnet_lr,
                         device = device,
-                        input_size=input_size)
+                        input_size=input_size,
+                        use_layernorm=args.hnet_use_layernorm)
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         return ret
 
@@ -553,6 +554,11 @@ parser.add_argument(
     help = "Number of local steps between hnet updates",
     type=int,
     default=1
+)
+parser.add_argument(
+    "--hnet_use_layernorm",
+    help = "should the hypernetwork use batchnorm",
+    action="store_true"
 )
 parser.add_argument(
     "--sizes",

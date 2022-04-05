@@ -1,9 +1,10 @@
+from cmath import isnan
 import torch
 import torch.nn as nn
 from collections import OrderedDict
 
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device, input_size=1):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device, input_size=1, use_layernorm=False):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
@@ -15,6 +16,7 @@ class PFL_Hypernet(nn.Module):
         
         self.out_params_dict = out_params_shapes
         self.out_dim = self.calculate_out_dim()
+        self.use_layernorm=use_layernorm
         shifts = nn.Parameter(torch.zeros(self.out_dim, device=self.device))
         scales = nn.Parameter(torch.ones(self.out_dim, device=self.device))
         self.register_parameter(name='shifts', param=shifts)
@@ -30,8 +32,12 @@ class PFL_Hypernet(nn.Module):
             self.layers.append(nn.Linear(embedding_dim + input_size - 1, num_hidden))
             for i in range(1, num_layers - 1):
                 self.layers.append(nn.ReLU())
+                if self.use_layernorm:
+                    self.layers.append(nn.LayerNorm(num_hidden))
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
             self.layers.append(nn.ReLU())
+            if self.use_layernorm:
+                self.layers.append(nn.LayerNorm(num_hidden))
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
         if self.input_size != 1:
             self.embedding = self.embedding.to(device)
@@ -67,7 +73,6 @@ class PFL_Hypernet(nn.Module):
             mean_w = weights.mean()
             std_w = weights.std()
             weights = (weights - mean_w) / std_w
-            
             weights *= scales * ((2 / (fan_in + fan_out)) ** 0.5)
             weights += shifts
 
@@ -89,9 +94,10 @@ class PFL_Hypernet(nn.Module):
         
     def forward(self, x):
         # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
+
         if self.input_size != 1:
             embed = self.layers[0](torch.tensor(x[0]).to(self.device))
             net_input = torch.cat([embed, torch.tensor(x[1:]).float().to(self.device)], dim=0)
-            return self.create_weight_dict(self.net(net_input))
+            return self.create_weight_dict(self.net(net_input.unsqueeze(0)))
         else:
             return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
