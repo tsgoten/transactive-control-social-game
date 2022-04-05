@@ -33,6 +33,7 @@ hnet = None
 hnet_optimizer = None
 device = "cuda" if torch.cuda.is_available() else "cpu"
 #device = "cpu"
+agg_data_dict = {}
 
 def get_agent(args):
     global hnet, hnet_optimizer, device
@@ -57,6 +58,10 @@ def get_agent(args):
         if args.algo=="ppo":
             #pass
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
+            if args.use_agg_data:
+                for i, e in enumerate(dummy_env.envs):
+                    agg_data = [i] + [pv for pv in e.pv_sizes] + [b for b in e.battery_sizes]
+                    agg_data_dict[str(i)] = torch.tensor(agg_data).to(device=device)
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
                                                                                      "fcnet_activation": args.fcnet_activation,
@@ -143,13 +148,15 @@ def get_agent(args):
             )
         if args.use_hnet:
             shapes = {k:  v.shape for k, v in list(ret.get_weights().values())[0].items()}
+            input_size = len(agg_data_dict['0']) if args.use_agg_data else 1
             hnet = PFL_Hypernet(n_nodes = dummy_env.n_nodes,
                         embedding_dim = args.hnet_embedding_dim, 
                         num_layers = args.hnet_num_layers,
                         num_hidden = args.hnet_num_hidden,
                         out_params_shapes = shapes,
                         lr = args.hnet_lr,
-                        device = device)
+                        device = device,
+                        input_size=input_size)
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
         return ret
 
@@ -180,7 +187,10 @@ def pfl_hnet_update(agent, result, args, old_weights):
     hnet_optimizer.step()
     new_weight_dict = {}
     for agent_id in curr_weights.keys():
-        new_weights = hnet(int(agent_id))
+        if args.use_agg_data:
+            new_weights = hnet(agg_data_dict[agent_id])
+        else:
+            new_weights = hnet(int(agent_id))
         new_weight_dict[agent_id] = new_weights
     # Set weights of each worker, including remote replicas
     for w in agent.workers.remote_workers():
@@ -218,7 +228,10 @@ def train(agent, args):
     if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet:
         weights = {}
         for agent_id in range(hnet.n_nodes):
-            weights[str(agent_id)] = hnet(agent_id)
+            if args.use_agg_data:
+                weights[str(agent_id)] = hnet(agg_data_dict[str(agent_id)])
+            else:
+                weights[str(agent_id)] = hnet(agent_id)
         # Set weights of each worker, including remote replicas
         #agent.workers.foreach_worker(lambda ev: ev.get_policy().set_weights(detach_weights(weights)))
         agent.set_weights(detach_weights(weights))
@@ -557,6 +570,11 @@ parser.add_argument(
     help="activation function of policy neurons",
     choices = ["relu", "tanh"],
     default="tanh"
+)
+parser.add_argument(
+    "--use_agg_data",
+    action='store_true',
+    help="include environment data",
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 
