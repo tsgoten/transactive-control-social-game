@@ -46,6 +46,7 @@ class MicrogridEnv(gym.Env):
         starting_day=None, 
         no_rl_control=False,
         no_external_grid=False,
+        macro_data_input_strategy="raw_macrodata",
         **kwargs
         ):
         """
@@ -104,7 +105,9 @@ class MicrogridEnv(gym.Env):
         self.action_space = spaces.Box(low = -1, high = 1, shape = (2 * DAY_LENGTH, ), dtype = np.float32)
 
         #Create Prosumers
+        self.macro_data_input_strategy = macro_data_input_strategy
         self.prosumer_dict = self._create_agents()
+
 
         if self.use_smirl:
             self.buffer = GaussianBuffer(self.action_length)
@@ -198,6 +201,20 @@ class MicrogridEnv(gym.Env):
         elif self.complex_batt_pv_scenario == 6:
             pvsizes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
             battery_nums = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        
+        if self.macro_data_input_strategy=="uniform_case":
+            if self.complex_batt_pv_scenario==2:
+                pvsizes = [10]*self.number_of_participants
+                battery_nums = [50]*self.number_of_participants
+            elif self.complex_batt_pv_scenario==3:
+                pvsizes = [50]*self.number_of_participants
+                battery_nums = [30]*self.number_of_participants
+            elif self.complex_batt_pv_scenario==4:
+                pvsizes = [50]*self.number_of_participants
+                battery_nums = [0]*self.number_of_participants
+            elif self.complex_batt_pv_scenario==5:
+                pvsizes = [0]*self.number_of_participants
+                battery_nums = [30]*self.number_of_participants
 
         # wrong number 
         else:

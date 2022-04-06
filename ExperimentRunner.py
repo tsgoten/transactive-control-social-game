@@ -60,9 +60,21 @@ def get_agent(args):
         if args.algo=="ppo":
             #pass
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
+            
+            # agg_data dict is populated here 
             if args.use_agg_data:
                 for i, e in enumerate(dummy_env.envs):
-                    agg_data = [i] + [pv for pv in e.pv_sizes] + [b for b in e.battery_sizes]
+                    pvs = [pv for pv in e.pv_sizes]
+                    batts = [b for b in e.battery_sizes]
+                    if args.macro_data_input_strategy == "raw_macrodata":
+                        agg_data = [i] + pvs + batts
+                    elif args.macro_data_input_strategy == "macrodata_means":
+                        agg_data = [i] + [np.mean(pvs)] + [np.mean(batts)]
+                    elif args.macro_data_input_strategy == "macrodata_means_sds":
+                        agg_data = [i] + [np.mean(pvs), np.std(pvs)] + [np.mean(batts), np.std(batts)]
+                    elif args.macro_data_input_strategy == "uniform_case":
+                        agg_data = [i] + [pvs[0]] + [batts[0]]
+                    
                     agg_data_dict[str(i)] = torch.tensor(agg_data).to(device=device)
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
@@ -395,6 +407,11 @@ parser.add_argument(
     action="store_false"
 )
 parser.add_argument(
+    "--complex_batt_pv_scenario",
+    default=1,
+    type=int
+)
+parser.add_argument(
     "--points_multiplier",
     help="points multiplier for SocialGame simulated agents (default = 10)",
     default=10,
@@ -583,6 +600,15 @@ parser.add_argument(
     "--use_agg_data",
     action='store_true',
     help="include environment data",
+)
+parser.add_argument(
+    "--macro_data_input_strategy",
+    type=str,
+    default="raw_macrodata",
+    choices=[
+        "raw_macrodata", "macrodata_means", 
+        "macrodata_means_sds", "uniform_case"
+        ]
 )
 #
 # Call get_agent and train to recieve the agent and then train it. 
