@@ -217,7 +217,7 @@ class MicrogridEnv(gym.Env):
                 battery_nums = [30]*self.number_of_participants
 
         # wrong number 
-        else:
+        if self.complex_batt_pv_scenario > 6:
             print("you've inputted an incorrect scenario")
             raise AssertionError
 
