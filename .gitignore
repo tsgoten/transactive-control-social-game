@@ -9,6 +9,7 @@ wandb/
 .local/
 .npm/
 .cache/
+.cache/*
 __pycache__
 *.egg-info
 *.csv
