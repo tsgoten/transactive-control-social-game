@@ -20,20 +20,6 @@ import wandb
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    "--policy_type",
-    help="Type of Policy (e.g. MLP, LSTM) for algo",
-    default="mlp",
-    choices=["mlp", "lstm"],
-)
-parser.add_argument(
-    "--reward_function",
-    help="reward function to test",
-    type=str,
-    default="log_cost_regularized",
-    choices=["scaled_cost_distance", "log_cost_regularized", "log_cost", "scd", "lcr", "lc", "market_solving", "profit_maximizing"],
-)
-
 # Environment Arguments
 
 parser.add_argument(
@@ -45,13 +31,7 @@ parser.add_argument(
         "feudal_spatial", "feudal_spatial_lower_baseline"
         ]
 )
-parser.add_argument(
-    "--response_type_string",
-    help="Player response function (l = linear, t = threshold_exponential, s = sinusoidal",
-    type=str,
-    default="l",
-    choices=["l", "t", "s"],
-)
+
 # Experiment Arguments
 parser.add_argument(
     "--exp_name",

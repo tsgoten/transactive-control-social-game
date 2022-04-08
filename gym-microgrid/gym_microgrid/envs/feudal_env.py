@@ -323,7 +323,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
-            FeudalMicrogridEnvLowerAggregator(**env_config, battery_pv_scenario = i) 
+            FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
             for i in range(6)
         }
         print("ended init")
@@ -625,8 +625,12 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
     reward: (buy_price^T .negative hours + optimal_external_sell_price ^T . positive_hours) - (sell_price^T.positive hours + optimal_external_buy_price^T . negative_hours)
     """
 
-    def __init__(self, env_config, battery_pv_scenario):
-        super().__init__(env_config)
+    def __init__(
+            self, 
+            env_config, 
+            battery_pv_scenario
+        ):
+        super().__init__(**env_config)
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()

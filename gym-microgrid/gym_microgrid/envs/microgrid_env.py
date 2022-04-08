@@ -34,6 +34,7 @@ class MicrogridEnvRLLib(gym.Env):
         one_day = 0,
         energy_in_state = False,
         reward_function = "market_solving",
+        gym_env = None,
         complex_batt_pv_scenario=1,
         exp_name = None,
         smirl_weight=None,
@@ -566,7 +567,7 @@ class MicrogridEnvRLLib(gym.Env):
             Raises AssertionError if number_of_participants is not an integer, is less than 1,  or greater than 20 (upper bound set arbitrarily for comp. purposes).
             Raises AssertionError if any of {one_day, energy_in_state, yesterday_in_state} is not a Boolean
         """
-        
+
         #Checking that number_of_participants is valid
         assert isinstance(number_of_participants, int), "Variable number_of_participants is not of type Integer. Instead got type {}".format(type(number_of_participants))
         assert number_of_participants > 0, "Variable number_of_participants should be atleast 1, got number_of_participants = {}".format(number_of_participants)
