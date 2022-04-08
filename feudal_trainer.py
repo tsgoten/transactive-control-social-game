@@ -3,8 +3,6 @@ from gym import spaces
 
 import numpy as np
 import pandas as pd 
-import ray
-from ray import tune
 import ray.rllib.agents.sac.sac as sac
 
 import utils
@@ -44,7 +42,7 @@ parser.add_argument(
 parser.add_argument(
     "--gym_env",
     help="feudal or flat",
-    default="feudal_timewise",
+    default="feudal_spatial",
     choices=[
         "feudal_timewise", "socialgame_env", 
         "feudal_spatial", "feudal_spatial_lower_baseline"
