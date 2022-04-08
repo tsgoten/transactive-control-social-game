@@ -320,9 +320,12 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         self.buyprices_grid, self.sellprices_grid = self._get_prices()
         # self.prices = self.buyprices_grid #Initialise to buyprices_grid
 
+        print(env_config)
+        print(vars(env_config))
+
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
-            FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
+            FeudalMicrogridEnvLowerAggregator(vars(env_config), battery_pv_scenario = i) 
             for i in range(6)
         }
         print("ended init")
