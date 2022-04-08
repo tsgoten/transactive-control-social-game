@@ -44,6 +44,7 @@ else
   singularity build austin_docker.sif docker://lucasspangher/socialgame_v1:austin
 fi
 module load tensorflow
+module load pytorch/1.0.0-py36-cuda9.0
 singularity run --nv --workdir ./tmp --bind $(pwd):$HOME --bind "$LDIR:$HOME/.local" austin_docker.sif sh -c "./singularity_preamble_new.sh && ./microgrid_experiment_script.sh"
 
 
