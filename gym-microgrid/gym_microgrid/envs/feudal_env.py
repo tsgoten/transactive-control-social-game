@@ -322,6 +322,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         print(env_config)
         print(vars(env_config))
+        pdb.set_trace()
 
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
