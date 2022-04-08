@@ -548,7 +548,7 @@ class MicrogridEnvRLLib(gym.Env):
         pass
 
     @staticmethod
-    def check_valid_init_inputs(action_space_string: str, number_of_participants = 10,
+    def check_valid_init_inputs(number_of_participants = 10,
                 one_day = False, energy_in_state = False):
 
         """
@@ -566,12 +566,7 @@ class MicrogridEnvRLLib(gym.Env):
             Raises AssertionError if number_of_participants is not an integer, is less than 1,  or greater than 20 (upper bound set arbitrarily for comp. purposes).
             Raises AssertionError if any of {one_day, energy_in_state, yesterday_in_state} is not a Boolean
         """
-
-        #Checking that action_space_string is valid
-        assert isinstance(action_space_string, str), "action_space_str is not of type String. Instead got type {}".format(type(action_space_string))
-        action_space_string = action_space_string.lower()
-        assert action_space_string in ["continuous", "multidiscrete", "continuous_normalized"], "action_space_str is not continuous or discrete. Instead got value {}".format(action_space_string)
-
+        
         #Checking that number_of_participants is valid
         assert isinstance(number_of_participants, int), "Variable number_of_participants is not of type Integer. Instead got type {}".format(type(number_of_participants))
         assert number_of_participants > 0, "Variable number_of_participants should be atleast 1, got number_of_participants = {}".format(number_of_participants)
