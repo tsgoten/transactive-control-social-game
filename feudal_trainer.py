@@ -21,11 +21,6 @@ import wandb
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--action_space_string",
-    help="action space for algorithm",
-    default="continuous",
-)
-parser.add_argument(
     "--policy_type",
     help="Type of Policy (e.g. MLP, LSTM) for algo",
     default="mlp",
