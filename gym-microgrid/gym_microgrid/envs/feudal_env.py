@@ -296,7 +296,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         sum: [-1, -3, -10]
     """
 
-    def __init__(self, env_config):
+    def __init__(self):
         super().__init__()
         self.higher_level_aggregator_buyprice = np.zeros(24)
         self.higher_level_aggregator_sellprice = np.zeros(24)
@@ -629,7 +629,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             self, 
             battery_pv_scenario
         ):
-        super(self).__init__()
+        super().__init__()
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
