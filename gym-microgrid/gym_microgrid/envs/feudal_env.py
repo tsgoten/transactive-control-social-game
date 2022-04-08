@@ -669,6 +669,105 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
                 prev_energy,)
             )#.astype(np.float32)
 
+    def _get_reward_twoprices(self):
+        """
+        Purpose: Compute reward given grid prices, transactive price set ahead of time, and energy consumption of the participants
+
+        Returns:
+            Reward for RL agent (- |net money flow|): in order to get close to market equilibrium
+        """
+        buyprice_competitor = self.lower_aggregator_competitor_buyprice
+        sellprice_competitor = self.lower_aggregator_competitor_sellprice
+        total_consumption = self.energy_consumptions['Total']
+
+        test_buy_from_competitor = self.buyprice < buyprice_competitor # Bool vector containing when prosumers buy from microgrid
+        test_sell_to_competitor = self.sellprice > sellprice_competitor # Bool vector containing when prosumers sell to microgrid
+        if np.all(self.buyprice == buyprice_competitor):
+            test_buy_from_competitor = np.repeat(.5, buyprice_competitor.shape)
+        if np.all(self.sellprice == sellprice_competitor):
+            test_sell_to_competitor = np.repeat(.5, sellprice_competitor.shape)
+
+        money_to_utility = (np.dot(np.maximum(0, total_consumption * test_buy_from_competitor), buyprice_competitor) - 
+            np.dot(np.minimum(0, total_consumption * test_sell_to_competitor), sellprice_competitor))
+
+        money_from_prosumers = 0
+        grid_money_from_prosumers = 0
+        for prosumerName in self.energy_consumptions:
+            if prosumerName != "Total":
+                money_from_prosumers += (
+                    np.dot(np.maximum(0, self.energy_consumptions[prosumerName]) * test_buy_from_competitor, self.buyprice) -     
+                    np.dot(np.minimum(0, self.energy_consumptions[prosumerName]) * test_sell_to_competitor, self.sellprice))
+
+                # Net money to external grid from prosumers (not including microgrid transactions w utility)
+                grid_money_from_prosumers += (
+                    np.dot(np.maximum(0, self.energy_consumptions[prosumerName]) * np.logical_not(test_buy_from_competitor), self.buyprice) - 
+                    np.dot(np.minimum(0, self.energy_consumptions[prosumerName]) * np.logical_not(test_sell_to_competitor), self.sellprice))
+
+        self.money_from_prosumers = money_from_prosumers
+        self.money_to_utility = money_to_utility
+        self.total_prosumer_cost = grid_money_from_prosumers + money_from_prosumers
+
+        total_reward = money_from_prosumers - money_to_utility
+
+        return total_reward
+
+
+    def _simulate_prosumers_twoprices(self):
+        """
+        Purpose: Gets energy consumption from players given action from agent
+                 Price: transactive price set in day-ahead manner
+
+        Returns:
+            Energy_consumption: Dictionary containing the energy usage by prosumer. 
+                Key 'Total': aggregate net energy consumption
+        """
+        
+        energy_consumptions = {}
+        batt_discharge_times = {}
+        batt_discharge_capacities = {}
+        total_consumption = np.zeros(24)
+        day_list = [self.day for _ in range(len(self.prosumer_dict))]
+        
+        if self.no_external_grid:
+            buyprice = self.buyprice
+            sellprice= self.sellprice
+        else:
+            buyprice = self.optimal_prosumer_buyprice
+            sellprice = self.optimal_prosumer_sellprice
+        if self.num_workers > 1:
+            buyprice_list = [buyprice for _ in range(len(self.prosumer_dict))]
+            sellprice_list = [sellprice for _ in range(len(self.prosumer_dict))]
+            prosumer_names, prosumer_demands, batt_discharges, batt_capacities = \
+                    zip(*self.pool.map(
+                        pool_fn, 
+                            zip(
+                                self.prosumer_dict.items(), 
+                                day_list, 
+                                buyprice_list, 
+                                sellprice_list)
+                                ))
+            for prosumer_name, prosumer_demand, batt_discharge, batt_capacity in zip(
+                    prosumer_names, prosumer_demands, batt_discharges, batt_capacities):
+                prosumer = self.prosumer_dict[prosumer_name]
+                batt_discharge_capacities[prosumer_name] = batt_capacity
+                batt_discharge_times[prosumer_name] = batt_discharge
+                energy_consumptions[prosumer_name] = prosumer_demand
+                total_consumption += prosumer_demand
+        else:
+            for prosumer_name in self.prosumer_dict:
+                #Get players response to agent's actions
+                prosumer = self.prosumer_dict[prosumer_name]
+                prosumer_demand, batt_discharge, batt_capacity = (
+                    prosumer.get_response_twoprices(self.day, buyprice, sellprice))
+                
+                #Calculate energy consumption by prosumer and in total (entire aggregation)
+                energy_consumptions[prosumer_name] = prosumer_demand
+                batt_discharge_capacities[prosumer_name] = batt_capacity
+                batt_discharge_times[prosumer_name] = batt_discharge
+                total_consumption += prosumer_demand
+        energy_consumptions["Total"] = total_consumption 
+        return energy_consumptions, batt_discharge_capacities, batt_discharge_times
+
     def step(self, action):
         """
         purpose: a single step for one lower level aggregator.
@@ -715,29 +814,24 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
                 higher_aggregator_sell_price, 
                 sellprice)
             )
-
-        energy_consumptions = self._simulate_prosumers_twoprices(
-            day = self.day, 
-            buyprice = optimal_prosumer_buyprice, 
-            sellprice = optimal_prosumer_sellprice)
-
-        self.prev_energy = energy_consumptions["Total"]
         
-        optimal_aggregator_buyprice = np.minimum(
+        self.optimal_prosumer_buyprice = optimal_prosumer_buyprice
+        self.optimal_prosumer_sellprice = optimal_prosumer_sellprice
+
+        self.energy_consumptions = self._simulate_prosumers_twoprices()
+
+        self.prev_energy = self.energy_consumptions["Total"]
+        
+        self.lower_aggregator_competitor_buyprice = np.minimum(
             grid_buy_price,
             higher_aggregator_buy_price
         )
-        optimal_aggregator_sellprice = np.maximum(
+        self.lower_aggregator_competitor_sellprice = np.maximum(
             grid_sell_price,
             higher_aggregator_sell_price
         )
     
-        reward = self._get_reward_twoprices(
-            optimal_aggregator_buyprice, 
-            optimal_aggregator_sellprice, 
-            buyprice, 
-            sellprice, 
-        energy_consumptions)
+        reward = self._get_lower_reward_twoprices()
 
         next_observation = self._get_observation()
         
