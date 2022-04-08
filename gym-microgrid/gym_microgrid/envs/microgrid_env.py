@@ -67,13 +67,12 @@ class MicrogridEnvRLLib(gym.Env):
 
         #Verify that inputs are valid
         self.check_valid_init_inputs(
-            action_space_string,
             number_of_participants,
             one_day,
             energy_in_state,
         )
         #Assigning Instance Variables
-        self.action_space_string = action_space_string
+        self.action_space_string = "continuous"
         self.number_of_participants = number_of_participants
         self.num_optim_steps = num_optim_steps
         self.energy_in_state = energy_in_state
