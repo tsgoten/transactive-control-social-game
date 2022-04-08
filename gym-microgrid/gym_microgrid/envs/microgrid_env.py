@@ -63,7 +63,7 @@ class MicrogridEnvRLLib(gym.Env):
             starting_day: (Optional[int]) Starting day, or None for random.
 
         """
-        super(MicrogridEnv, self).__init__()
+        super(MicrogridEnvRLLib, self).__init__()
 
         #Verify that inputs are valid
         self.check_valid_init_inputs(
