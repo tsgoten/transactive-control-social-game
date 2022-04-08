@@ -627,10 +627,9 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
     def __init__(
             self, 
-            env_config, 
             battery_pv_scenario
         ):
-        super().__init__(**env_config)
+        super(self).__init__()
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
