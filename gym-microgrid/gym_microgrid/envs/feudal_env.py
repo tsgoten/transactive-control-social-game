@@ -296,7 +296,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         sum: [-1, -3, -10]
     """
 
-    def __init__(self):
+    def __init__(self, env_config):
         super().__init__()
         self.higher_level_aggregator_buyprice = np.zeros(24)
         self.higher_level_aggregator_sellprice = np.zeros(24)
