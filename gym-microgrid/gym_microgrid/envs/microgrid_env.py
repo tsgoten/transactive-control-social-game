@@ -30,7 +30,6 @@ class MicrogridEnvRLLib(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self,
-        action_space_string = "continuous",
         number_of_participants = 10,
         one_day = 0,
         energy_in_state = False,
@@ -72,7 +71,6 @@ class MicrogridEnvRLLib(gym.Env):
             energy_in_state,
         )
         #Assigning Instance Variables
-        self.action_space_string = "continuous"
         self.number_of_participants = number_of_participants
         self.num_optim_steps = num_optim_steps
         self.energy_in_state = energy_in_state
