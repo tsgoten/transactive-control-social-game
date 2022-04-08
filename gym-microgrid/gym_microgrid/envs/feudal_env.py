@@ -323,7 +323,9 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
-            FeudalMicrogridEnvLowerAggregator(battery_pv_scenario = i) 
+            FeudalMicrogridEnvLowerAggregator(
+                battery_pv_scenario = i,
+                env_config=env_config) 
             for i in range(6)
         }
         print("ended init")
@@ -627,9 +629,12 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
     def __init__(
             self, 
-            battery_pv_scenario
+            battery_pv_scenario,
+            env_config
         ):
-        super().__init__()
+        super().__init__(
+            num_optim_steps=env_config["num_optim_steps"]
+        )
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
