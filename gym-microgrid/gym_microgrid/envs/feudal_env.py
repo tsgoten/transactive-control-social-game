@@ -323,7 +323,7 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         self.lower_level_agent_dict = {
             f"lower_level_agent_{i}": 
-            FeudalMicrogridEnvLowerAggregator(env_config, battery_pv_scenario = i) 
+            FeudalMicrogridEnvLowerAggregator(battery_pv_scenario = i) 
             for i in range(6)
         }
         print("ended init")
