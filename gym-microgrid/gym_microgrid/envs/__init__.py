@@ -1,5 +1,3 @@
-from gym_microgrid.envs.microgrid_env import MicrogridEnv
-
 from gym_microgrid.envs.microgrid_env import MicrogridEnvRLLib
 
 from gym_microgrid.envs.multiagent_env import MultiAgentSocialGameEnv
