@@ -634,7 +634,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         ):
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
-        self.prosumer_dict = self._create_agents()
+        # self.prosumer_dict = self._create_agents()
         self.reward_function = "profit_maximizing"
         self.higher_level_sell_price = np.zeros(24)
         self.higher_level_buy_price = np.zeros(24)
