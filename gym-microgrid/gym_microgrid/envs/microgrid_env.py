@@ -38,7 +38,7 @@ class MicrogridEnvRLLib(gym.Env):
         complex_batt_pv_scenario=1,
         exp_name = None,
         smirl_weight=None,
-        num_optim_steps=10000,
+        num_optim_steps=100,
         num_workers=10,
         max_episode_steps=365,
         ancillary_logger=None,
@@ -63,7 +63,7 @@ class MicrogridEnvRLLib(gym.Env):
             starting_day: (Optional[int]) Starting day, or None for random.
 
         """
-        super(MicrogridEnvRLLib, self).__init__()
+        super().__init__()
 
         #Verify that inputs are valid
         self.check_valid_init_inputs(
