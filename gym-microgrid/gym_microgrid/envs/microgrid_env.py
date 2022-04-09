@@ -152,6 +152,8 @@ class MicrogridEnvRLLib(gym.Env):
         prosumer_dict = {}
 
         # Manually set battery numbers and PV sizes
+        print("------ complex_pv_batt_scenario ------")
+        print(self.complex_batt_pv_scenario)
 
         ## large and constant batt and PV
         if self.complex_batt_pv_scenario == 1:
