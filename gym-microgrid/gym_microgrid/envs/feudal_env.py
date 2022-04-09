@@ -644,6 +644,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.grid_buy_price = np.zeros(24)
         self.generation_tomorrow = np.zeros(24)
         self.number_of_participants=10
+        self.curr_iter = 0
         super().__init__(
             complex_batt_pv_scenario=battery_pv_scenario
         )
@@ -793,12 +794,6 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         """ 
 
         self.action = action
-        self.curr_iter += 1
-        self.total_iter += 1
-
-        done = {
-            self.curr_iter > 0
-        }
 
         buyprice, sellprice = self._price_from_action(action)
             # self.price = price
