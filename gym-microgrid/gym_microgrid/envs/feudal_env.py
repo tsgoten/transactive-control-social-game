@@ -632,7 +632,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             battery_pv_scenario,
             env_config
         ):
-        super(MicrogridEnvRLLib).__init__(
+        super().__init__(
             num_optim_steps=env_config["num_optim_steps"]
         )
         self.prev_energy = np.random.sample(24)
