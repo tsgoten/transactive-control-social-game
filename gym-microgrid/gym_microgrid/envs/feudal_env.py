@@ -632,9 +632,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
             battery_pv_scenario,
             env_config
         ):
-        super().__init__(
-            num_optim_steps=env_config["num_optim_steps"]
-        )
+        super().__init__()
         self.prev_energy = np.random.sample(24)
         self.complex_batt_pv_scenario = battery_pv_scenario
         self.prosumer_dict = self._create_agents()
@@ -665,8 +663,6 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         noise = np.random.normal(loc = 0, scale = 50, size = 24) ## TODO: get rid of this if not doing well
         generation_tomorrow_nonzero = (generation_tomorrow > abs(noise)) # when is generation non zero?
         generation_tomorrow += generation_tomorrow_nonzero* noise # Add in Gaussian noise when gen in non zero
-
-        self.generation_tomorrow
 
         return np.concatenate(
             (
