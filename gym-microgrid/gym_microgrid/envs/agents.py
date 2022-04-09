@@ -21,8 +21,10 @@ class Prosumer():
                 yearlonggeneration, 
                 battery_num = 0, 
                 pv_size = 0,
+                num_optim_steps=10000,
                 ):
-                
+                self.num_optim_steps = num_optim_steps
+                # print(self.num_optim_steps)
                 self.name = name
                 self.yearlongdemand = yearlongdemand
                 self.yearlonggeneration = yearlonggeneration
@@ -32,8 +34,8 @@ class Prosumer():
                 self.batterycyclecost = 273/2800 # per unit capacity
                 self.eta = 0.95 #battery one way efficiency
                 self.c_rate = 0.35
-                self.battery_discharged_capacity = 0
-                self.battery_discharged_times = 0
+                self.battery_discharged_capacity = 121
+                self.battery_discharged_times = 5656
 
         def get_response(
                 self, 
@@ -69,21 +71,24 @@ class Prosumer():
                         discharge <= np.zeros(24)]
                 prob = cvx.Problem(obj, constraints)
 
+                # try:
+                #         prob.solve(solver = cvx.MOSEK)
+                # except: 
                 try:
                         prob.solve(solver = cvx.SCS)
-                except: 
+                except SolverError:
                         try:
                                 print("SCS solver did not work")
                                 prob.solve(solver = cvx.OSQP)
-                        except:
+                        except SolverError:
                                 try:
                                         print("OSQP or ECOS didn't work")
                                         prob.solve(solver = cvx.ECOS_BB)
-                                except:
+                                except SolverError:
                                         try:
                                                 print("Three didn't work")
-                                                prob.solve(solver = cvs.ECOS)
-                                        except:
+                                                prob.solve(solver = cvx.ECOS)
+                                        except SolverError:
                                                 print("none of the solvers work")
 
                 charged = prob.variables()[0].value
@@ -91,12 +96,14 @@ class Prosumer():
                 net = load - gen + charged/eta + discharged*eta
 
                 return np.array(net)
-
+        
+        # from cs285.infrastructure.utils import profile
+        # @profile
         def get_response_twoprices(
                 self, 
                 day, 
                 buyprice,
-                sellprice,
+                sellprice
                 ):
 
                 """
@@ -120,7 +127,7 @@ class Prosumer():
 
                 def dailyobjective(x):
                         net = load - gen + (-eta + 1/eta)*abs(x)/2 + (eta + 1/eta)*x/2
-                        return sum(np.maximum(net,0)*buyprice) + sum(np.minimum(net,0)*sellprice) 
+                        return np.sum(np.maximum(net,0)*buyprice) + np.sum(np.minimum(net,0)*sellprice) 
 
                 def hourly_con_charge_max(x):
                         # Shouldn't charge or discharge too fast
@@ -144,33 +151,26 @@ class Prosumer():
                 con4_hourly = {'type':'ineq', 'fun':hourly_con_cap_max}
                 cons_hourly = (con1_hourly, con2_hourly, con3_hourly, con4_hourly)
         
-                x0 = [battery_num*capacity]*24
+                x0 = [battery_num*capacity] * 24
                 # x0 = [0]*24
                 
-                sol = minimize(dailyobjective, x0, constraints=cons_hourly, method='SLSQP', options={'maxiter':10000})
+                sol = minimize(dailyobjective, x0, constraints=cons_hourly, method='SLSQP', options={'maxiter':self.num_optim_steps})
 
+                x = sol['x']    
 
-                if not sol.success:
-                        net = load - gen 
-                        x = np.zeros(24)
-                else: 
-                        x = sol['x']
-                        self.battery_discharged_capacity = np.sum(np.abs(x))
-                        self.battery_discharged_times = np.sum(np.abs(x)>.1)
-                        net = load - gen + (-eta + 1/eta)*abs(x)/2 + (eta + 1/eta)*x/2
-                        upper_bound = load - gen + np.ones(24) * capacity * battery_num * c_rate
-                        lower_bound = load - gen - np.ones(24) * capacity * battery_num * c_rate
-                        net = np.minimum(net, upper_bound)         # upper bound 
-                        net = np.maximum(net, lower_bound)         # lower bound 
-                # sol['x'] = x
-                # sol['fun'] = dailyobjective(x)
-        
-                return np.array(net)
-               
+                battery_discharged_capacity = np.sum(np.abs(x))
+                battery_discharged_times = np.sum(np.abs(x) > (np.array(x0) * .25))
+                #v1: changing this so that it takes the same behavior if the solution is reached or not -- still dependent on the battery's behavior. 
+                net = load - gen + (-eta + 1/eta)*abs(x)/2 + (eta + 1/eta)*x/2
+                upper_bound = load - gen + np.ones(24) * capacity * battery_num * c_rate
+                lower_bound = load - gen - np.ones(24) * capacity * battery_num * c_rate
+                net = np.minimum(net, upper_bound)         # upper bound 
+                net = np.maximum(net, lower_bound)         # lower bound 
+
+                return np.array(net), battery_discharged_times, battery_discharged_capacity
+
         def return_battery_characteristics(self):
                 return self.battery_discharged_capacity, self.battery_discharged_times
-
-
 
         def get_battery_operation(
                 self, 
@@ -205,10 +205,13 @@ class Prosumer():
                         discharge >= -self.c_rate*self.capacity*self.battery_num*np.ones(24),
                         discharge <= np.zeros(24)]
                 prob = cvx.Problem(obj, constraints)
-        
+                # try:
+                #         prob.solve(solver = cvx.MOSEK)
+                # except SolverError: 
                 try:
                         prob.solve(solver = cvx.SCS)
                 except SolverError: 
+                        ## Orr loves this logic <3 
                         try:
                                 prob.solve(solver = cvx.OSQP)
                         except SolverError:
@@ -216,10 +219,10 @@ class Prosumer():
                                         prob.solve(solver = cvx.ECOS_BB)
                                 except SolverError:
                                         try:
-                                                prob.solve(solver = cvs.ECOS)
+                                                prob.solve(solver = cvx.ECOS)
                                         except SolverError:
                                                 print("none of the solvers work")
-                        
+                                
                 charged = prob.variables()[0].value
                 discharged = prob.variables()[1].value
                 return np.array(charged/eta + discharged*eta)
