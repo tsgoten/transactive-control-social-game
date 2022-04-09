@@ -743,37 +743,18 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         else:
             buyprice = self.optimal_prosumer_buyprice
             sellprice = self.optimal_prosumer_sellprice
-        if self.num_workers > 1:
-            buyprice_list = [buyprice for _ in range(len(self.prosumer_dict))]
-            sellprice_list = [sellprice for _ in range(len(self.prosumer_dict))]
-            prosumer_names, prosumer_demands, batt_discharges, batt_capacities = \
-                    zip(*self.pool.map(
-                        pool_fn, 
-                            zip(
-                                self.prosumer_dict.items(), 
-                                day_list, 
-                                buyprice_list, 
-                                sellprice_list)
-                                ))
-            for prosumer_name, prosumer_demand, batt_discharge, batt_capacity in zip(
-                    prosumer_names, prosumer_demands, batt_discharges, batt_capacities):
-                prosumer = self.prosumer_dict[prosumer_name]
-                batt_discharge_capacities[prosumer_name] = batt_capacity
-                batt_discharge_times[prosumer_name] = batt_discharge
-                energy_consumptions[prosumer_name] = prosumer_demand
-                total_consumption += prosumer_demand
-        else:
-            for prosumer_name in self.prosumer_dict:
-                #Get players response to agent's actions
-                prosumer = self.prosumer_dict[prosumer_name]
-                prosumer_demand, batt_discharge, batt_capacity = (
-                    prosumer.get_response_twoprices(self.day, buyprice, sellprice))
-                
-                #Calculate energy consumption by prosumer and in total (entire aggregation)
-                energy_consumptions[prosumer_name] = prosumer_demand
-                batt_discharge_capacities[prosumer_name] = batt_capacity
-                batt_discharge_times[prosumer_name] = batt_discharge
-                total_consumption += prosumer_demand
+
+        for prosumer_name in self.prosumer_dict:
+            #Get players response to agent's actions
+            prosumer = self.prosumer_dict[prosumer_name]
+            prosumer_demand, batt_discharge, batt_capacity = (
+                prosumer.get_response_twoprices(self.day, buyprice, sellprice))
+            
+            #Calculate energy consumption by prosumer and in total (entire aggregation)
+            energy_consumptions[prosumer_name] = prosumer_demand
+            batt_discharge_capacities[prosumer_name] = batt_capacity
+            batt_discharge_times[prosumer_name] = batt_discharge
+            total_consumption += prosumer_demand
         energy_consumptions["Total"] = total_consumption 
         return energy_consumptions, batt_discharge_capacities, batt_discharge_times
 
