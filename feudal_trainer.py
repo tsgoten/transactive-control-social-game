@@ -82,6 +82,11 @@ parser.add_argument(
     default=.4
 )
 parser.add_argument(
+    "--num_optim_steps",
+    type=int,
+    default=10
+)
+parser.add_argument(
     "--pricing_type",
     help="time of use or real time pricing",
     type=str,
