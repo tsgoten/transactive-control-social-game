@@ -820,6 +820,6 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
         next_observation = self._get_observation()
         
-        self.iteration += 1
+        done = False 
 
         return next_observation, reward, done, {}
