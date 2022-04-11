@@ -678,7 +678,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
                 prev_energy,)
             )#.astype(np.float32)
 
-    def _get_reward_twoprices(self):
+    def _get_lower_reward_twoprices(self):
         """
         Purpose: Compute reward given grid prices, transactive price set ahead of time, and energy consumption of the participants
 
