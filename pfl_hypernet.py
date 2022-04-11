@@ -4,7 +4,7 @@ import torch.nn as nn
 from collections import OrderedDict
 
 class PFL_Hypernet(nn.Module):
-    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device, input_size=1, use_layernorm=False):
+    def __init__(self, n_nodes, embedding_dim, num_layers, num_hidden, out_params_shapes, lr, device, input_size=1, use_layernorm=False, dropout=0):
         super().__init__()
         self.num_layers = num_layers
         self.num_hidden = num_hidden
@@ -16,6 +16,7 @@ class PFL_Hypernet(nn.Module):
         
         self.out_params_dict = out_params_shapes
         self.out_dim = self.calculate_out_dim()
+        self.dropout = dropout
         self.use_layernorm=use_layernorm
         shifts = nn.Parameter(torch.zeros(self.out_dim, device=self.device))
         scales = nn.Parameter(torch.ones(self.out_dim, device=self.device))
@@ -34,10 +35,14 @@ class PFL_Hypernet(nn.Module):
                 self.layers.append(nn.ReLU())
                 if self.use_layernorm:
                     self.layers.append(nn.LayerNorm(num_hidden))
+                if self.dropout > 0:
+                    self.layers.append(nn.Dropout(self.dropout))
                 self.layers.append(nn.Linear(num_hidden, num_hidden))
             self.layers.append(nn.ReLU())
             if self.use_layernorm:
                 self.layers.append(nn.LayerNorm(num_hidden))
+            if self.dropout > 0:
+                self.layers.append(nn.Dropout(self.dropout))
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
         if self.input_size != 1:
             self.embedding = self.embedding.to(device)
@@ -96,7 +101,7 @@ class PFL_Hypernet(nn.Module):
         # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
 
         if self.input_size != 1:
-            embed = self.layers[0](torch.tensor(x[0]).to(self.device))
+            embed = self.layers[0](torch.tensor(x[0], dtype=torch.int64).to(self.device))
             net_input = torch.cat([embed, torch.tensor(x[1:]).float().to(self.device)], dim=0)
             return self.create_weight_dict(self.net(net_input.unsqueeze(0)))
         else:

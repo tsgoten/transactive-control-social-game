@@ -62,7 +62,7 @@ def get_agent(args):
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
             if args.use_agg_data:
                 for i, e in enumerate(dummy_env.envs):
-                    agg_data = [i] + [pv for pv in e.pv_sizes] + [b for b in e.battery_sizes]
+                    agg_data = [i] + [pv / 300 for pv in e.pv_sizes] + [b / 150 for b in e.battery_sizes]
                     agg_data_dict[str(i)] = torch.tensor(agg_data).to(device=device)
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
@@ -159,8 +159,9 @@ def get_agent(args):
                         lr = args.hnet_lr,
                         device = device,
                         input_size=input_size,
-                        use_layernorm=args.hnet_use_layernorm)
-            hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr)
+                        use_layernorm=args.hnet_use_layernorm,
+                        dropout = args.hnet_dropout)
+            hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr, weight_decay = args.hnet_l2_reg)
         return ret
 
     # Add more algorithms here. 
@@ -561,6 +562,23 @@ parser.add_argument(
     action="store_true"
 )
 parser.add_argument(
+    "--hnet_l2_reg",
+    type=float,
+    default=0
+)
+parser.add_argument(
+    "--hnet_dropout",
+    type=float,
+    default=0
+)
+parser.add_argument(
+    "--use_agg_data",
+    action='store_true',
+    help="include environment data",
+)
+
+# Local network parameters
+parser.add_argument(
     "--sizes",
     help="number of nodes in policy networks",
     default=256,
@@ -579,11 +597,7 @@ parser.add_argument(
     choices = ["relu", "tanh"],
     default="tanh"
 )
-parser.add_argument(
-    "--use_agg_data",
-    action='store_true',
-    help="include environment data",
-)
+
 #
 # Call get_agent and train to recieve the agent and then train it. 
 #
