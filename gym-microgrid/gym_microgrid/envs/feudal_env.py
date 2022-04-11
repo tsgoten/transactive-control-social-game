@@ -802,7 +802,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         self.optimal_prosumer_buyprice = optimal_prosumer_buyprice
         self.optimal_prosumer_sellprice = optimal_prosumer_sellprice
 
-        self.energy_consumptions, batt_discharge_capacities, batt_discharge_times = (
+        self.energy_consumptions, self.battery_discharges_cap_today, self.battery_discharges_times_today = (
             self._simulate_prosumers_twoprices())
 
         self.prev_energy = self.energy_consumptions["Total"]
