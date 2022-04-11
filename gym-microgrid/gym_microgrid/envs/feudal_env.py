@@ -776,7 +776,7 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
 
         self.action = action
 
-        buyprice, sellprice = self._price_from_action(action)
+        self.buyprice, self.sellprice = self._price_from_action(action)
             # self.price = price
 
         obs = self._get_observation()
@@ -790,13 +790,13 @@ class FeudalMicrogridEnvLowerAggregator(MicrogridEnvRLLib):
         optimal_prosumer_buyprice = np.minimum(
             grid_buy_price, np.minimum(
                 higher_aggregator_buy_price, 
-                buyprice)
+                self.buyprice)
             )
 
         optimal_prosumer_sellprice = np.maximum(
             grid_sell_price, np.maximum(
                 higher_aggregator_sell_price, 
-                sellprice)
+                self.sellprice)
             )
         
         self.optimal_prosumer_buyprice = optimal_prosumer_buyprice
