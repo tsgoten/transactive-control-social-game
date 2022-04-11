@@ -1,6 +1,6 @@
 import json
 import argparse
-import numpy as np
+import torch
 import os
 import random
 
@@ -182,35 +182,35 @@ if __name__ == '__main__':
     pv_mean_mean = args.pv_mean_mean
     pv_mean_var = args.pv_mean_var
     if pv_mean_mean >= 0 and pv_mean_var >= 0:
-        pv_mean = np.random.normal(pv_mean_mean, pv_mean_var, num_scenarios).tolist()
+        pv_mean = torch.normal(pv_mean_mean, pv_mean_var, num_scenarios).tolist()
     pv_var_mean = args.pv_var_mean
     pv_var_var = args.pv_var_var
     if pv_var_mean >= 0 and pv_var_var >= 0:
-        pv_var = np.random.normal(pv_var_mean, pv_var_var, num_scenarios).tolist()
+        pv_var = torch.normal(pv_var_mean, pv_var_var, num_scenarios).tolist()
     pv_bern_mean = args.pv_bern_mean
     pv_bern_var = args.pv_bern_var
     if pv_bern_mean >= 0 and pv_bern_var >= 0:
-        pv_bern = np.random.normal(pv_bern_mean, pv_bern_var, num_scenarios).tolist()
+        pv_bern = torch.normal(pv_bern_mean, pv_bern_var, num_scenarios).tolist()
     
     batt_mean_mean = args.batt_mean_mean
     batt_mean_var = args.batt_mean_var
     if batt_mean_mean >= 0 and batt_mean_var >= 0:
-        batt_mean = np.random.normal(batt_mean_mean, batt_mean_var, num_scenarios).tolist()
+        batt_mean = torch.normal(batt_mean_mean, batt_mean_var, num_scenarios).tolist()
     batt_var_mean = args.batt_var_mean
     batt_var_var = args.batt_var_var
     if batt_var_mean >= 0 and batt_var_var >= 0:
-        batt_var = np.random.normal(batt_var_mean, batt_var_var, num_scenarios).tolist()
+        batt_var = torch.normal(batt_var_mean, batt_var_var, num_scenarios).tolist()
     batt_bern_mean = args.batt_bern_mean
     batt_bern_var = args.batt_bern_var
     if batt_bern_mean >= 0 and batt_bern_var >= 0:
-        batt_bern = np.random.normal(batt_bern_mean, batt_bern_var, num_scenarios).tolist()
+        batt_bern = torch.normal(batt_bern_mean, batt_bern_var, num_scenarios).tolist()
 
         
 
     
     for i in range(num_scenarios):
-        pv = [0 if np.random.rand() < pv_bern[i] else np.random.normal(pv_mean[i], pv_var[i]) for _ in range(num_buildings[i])]
-        batt = [0 if np.random.rand() < batt_bern[i] else np.random.normal(batt_mean[i], batt_var[i]) for _ in range(num_buildings[i])]
+        pv = [0 if torch.rand() < pv_bern[i] else torch.normal(pv_mean[i], pv_var[i]) for _ in range(num_buildings[i])]
+        batt = [0 if torch.rand() < batt_bern[i] else torch.normal(batt_mean[i], batt_var[i]) for _ in range(num_buildings[i])]
         scenario = {
             "pv": pv,
             "batt": batt
