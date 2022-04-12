@@ -424,13 +424,13 @@ class HierarchicalMultigridCallbacks(DefaultCallbacks):
 
         # TODO: Implement observations. Take a look at CustomCallbacks.
         
-        print("-------------")
-        print("------------")
-        print("printing wandb artifacts")
-        print(episode.user_data)
-        print(episode.hist_data)
-        print("-------------")
-        print("------------")
+        # print("-------------")
+        # print("------------")
+        # print("printing wandb artifacts")
+        # print(episode.user_data)
+        # print(episode.hist_data)
+        # print("-------------")
+        # print("------------")
 
         
 
