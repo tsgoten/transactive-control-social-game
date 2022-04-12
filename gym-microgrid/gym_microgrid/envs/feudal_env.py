@@ -556,8 +556,6 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         }
         wandb_log = {**wandb_log_1, **wandb_log_2, **wandb_log_3}
 
-        pdb.set_trace()
-
         wandb_log["higher_level_agent_reward"] = higher_level_profit
         wandb_log["total_lower_level_agent_reward"] = lower_level_profit_total
         wandb.log(wandb_log)
