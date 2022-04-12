@@ -520,8 +520,12 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
 
         self.batt_stats = {
             f"lower_level_agent_{i}": {
-                "discharge_caps": list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today.values()),
-                "discharges": list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today.values())
+                "discharge_caps": np.mean(
+                    list(
+                        self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today.values())),
+                "discharges": np.mean(
+                    list(
+                        self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today.values()))
             }
             for i in range(6)
         }
