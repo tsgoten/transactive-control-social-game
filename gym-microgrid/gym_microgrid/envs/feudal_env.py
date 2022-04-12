@@ -536,12 +536,19 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
         }
 
         ##### wandb.log
-        # wandb.log({
-        #     f"lower_level_agent_{i}_discharge_caps": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today,
-        #     f"lower_level_agent_{i}_discharges": self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today
-        #     }
-        #     for i in range(6)
-        # })
+        wandb_log = {
+            {
+                f"lower_level_agent_{i}_reward": rew[f"lower_level_agent_{i}"], 
+                f"lower_level_agent_{i}_discharge_caps": np.mean(
+                    list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today.values())),
+                f"lower_level_agent_{i}_discharges": np.mean(
+                    list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today.values())),
+            }
+            for i in range(6)
+        }
+        wandb_log["higher_level_agent_reward"] = higher_level_profit
+        wandb_log["total_lower_level_agent_reward"] = lower_level_profit_total
+        wandb.log(wandb_log)
 
 
         done = {"__all__": True}
