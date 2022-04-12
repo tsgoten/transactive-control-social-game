@@ -535,19 +535,29 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             "discharges": 0
         }
 
-        pdb.set_trace()
 
         ##### wandb.log
-        wandb_log = {
-            {
-                f"lower_level_agent_{i}_reward": rew[f"lower_level_agent_{i}"], 
-                f"lower_level_agent_{i}_discharge_caps": np.mean(
-                    list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_cap_today.values())),
-                f"lower_level_agent_{i}_discharges": np.mean(
-                    list(self.lower_level_agent_dict[f"lower_level_agent_{i}"].battery_discharges_times_today.values())),
-            }
-            for i in range(6)
+
+        wandb_log_1 = {
+            f"lower_level_agent_{i}_reward": rew[f"lower_level_agent_{i}"]
+            for i in range(6)}
+        wandb_log_2 = {
+            f"lower_level_agent_{i}_discharge_caps": np.mean(
+                    list(self.lower_level_agent_dict[
+                        f"lower_level_agent_{i}"
+                    ].battery_discharges_cap_today.values()))
+                for i in range(6)}
+        wandb_log_3 = {
+            f"lower_level_agent_{i}_discharges": np.mean(
+                    list(self.lower_level_agent_dict[
+                        f"lower_level_agent_{i}"
+                    ].battery_discharges_times_today.values()))
+                for i in range(6)
         }
+        wandb_log = {**wandb_log_1, **wandb_log_2, **wandb_log_3}
+
+        pdb.set_trace()
+
         wandb_log["higher_level_agent_reward"] = higher_level_profit
         wandb_log["total_lower_level_agent_reward"] = lower_level_profit_total
         wandb.log(wandb_log)
