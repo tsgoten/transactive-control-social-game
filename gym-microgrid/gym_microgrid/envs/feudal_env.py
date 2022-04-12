@@ -535,6 +535,8 @@ class FeudalMicrogridEnvHigherAggregator(MultiAgentEnv):
             "discharges": 0
         }
 
+        pdb.set_trace()
+
         ##### wandb.log
         wandb_log = {
             {
