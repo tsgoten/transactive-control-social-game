@@ -36,8 +36,8 @@ SINGULARITY_CACHEDIR=$BASE_DIR/.singularity/cache
 export SINGULARITY_CACHEDIR=$BASE_DIR/.singularity/cache
 SINGULARITY_TEMPDIR=$BASE_DIR/tmp
 export SINGULARITY_TEMPDIR=$BASE_DIR/tmp
-SINGULARITY_CACHE_DIR=/global/scratch/users/lucas_spangher/transactive-control-social-game
-export WANDB_API_KEY=7385069f57b00860da0e7add0bdc6eba19fb07cd
+SINGULARITY_CACHE_DIR=/global/scratch/users/djang/transactive-control-social-game
+export WANDB_API_KEY=87928bf7ce62528545fe624701ab2f3aa25a7547
 if test -f austin_docker.sif; then
   echo “docker image exists”
 else
