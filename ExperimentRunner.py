@@ -372,6 +372,12 @@ parser.add_argument(
     default="l",
     choices=["l", "t", "s"],
 )
+parser.add_argument(
+    "--pv_batt_config_path",
+    help="Path to json containing pv_batt_scenarios",
+    type=str,
+    default="",
+)
 # Experiment Arguments
 parser.add_argument(
     "--exp_name",

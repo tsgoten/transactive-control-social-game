@@ -1,6 +1,6 @@
 import json
 import argparse
-import torch
+import numpy as np
 import os
 import random
 
@@ -51,49 +51,49 @@ def add_args(parser):
     parser.add_argument(
         "--pv_mean",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of pv means; if len < num_envs, use first as default")
     parser.add_argument(
         "--pv_var",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of pv variances; if len < num_envs, use first as default")
     parser.add_argument(
         "--pv_bern",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of pv Bernoulli probablities; if len < num_envs, use first as default")
     parser.add_argument(
         "--pv_mean_mean",
-        type=int,
+        type=float,
         default = -1,
         help="Mean of pv_means, for generation. If < 0, use list of means")
     parser.add_argument(
         "--pv_mean_var",
-        type=int,
+        type=float,
         default = -1,
         help="Variance of pv_means, for generation. If < 0, use list of means")
     parser.add_argument(
         "--pv_var_mean",
-        type=int,
+        type=float,
         default = -1,
         help="Mean of pv_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
-        "--pv_mean_var",
-        type=int,
+        "--pv_var_var",
+        type=float,
         default = -1,
         help="Variance of pv_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
         "--pv_bern_mean",
-        type=int,
+        type=float,
         default = -1,
         help="Mean of pv_berns, for generation. If < 0, use list of berns")
     parser.add_argument(
         "--pv_bern_var",
-        type=int,
+        type=float,
         default = -1,
         help="Variance of pv_berns, for generation. If < 0, use list of berns")
         
@@ -101,53 +101,67 @@ def add_args(parser):
     parser.add_argument(
         "--batt_mean",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of batt means; if len < num_envs, use first as default")
     parser.add_argument(
         "--batt_var",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of batt variances; if len < num_envs, use first as default")
     parser.add_argument(
         "--batt_bern",
         nargs='+',
-        type=int,
+        type=float,
         default = [0],
         help="List of batt Bernoulli probablities (to set to 0); if len < num_envs, use first as default")
     parser.add_argument(
         "--batt_mean_mean",
-        type=int,
+        type=float,
         default = -1,
         help="Mean of batt_means, for generation. If < 0, use list of means")
     parser.add_argument(
         "--batt_mean_var",
-        type=int,
+        type=float,
         default = -1,
         help="Variance of batt_means, for generation. If < 0, use list of means")
     parser.add_argument(
         "--batt_var_mean",
-        type=int,
+        type=float,
         default = -1,
         help="Mean of batt_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
-        "--batt_mean_var",
-        type=int,
+        "--batt_var_var",
+        type=float,
         default = -1,
         help="Variance of batt_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
-        "--pv_bern_mean",
-        type=int,
+        "--batt_bern_mean",
+        type=float,
         default = -1,
-        help="Mean of pv_berns, for generation. If < 0, use list of berns")
+        help="Mean of batt_berns, for generation. If < 0, use list of berns")
     parser.add_argument(
-        "--pv_bern_var",
-        type=int,
+        "--batt_bern_var",
+        type=float,
         default = -1,
-        help="Variance of pv_berns, for generation. If < 0, use list of berns")
+        help="Variance of batt_berns, for generation. If < 0, use list of berns")
     return parser
     
+
+def expand_list(lst, length):
+    if len(lst) < length:
+        return [lst[0] for _ in range(length)]
+    return lst
+
+def return_normal_list(mean, var, n, lst, nonNegative):
+    rv = np.array(lst)
+    if mean >= 0 and var >= 0:
+        rv = np.random.normal(mean, var, n)
+    if nonNegative:
+        rv[rv < 0] = 0
+    return rv.tolist()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser = add_args(parser)
@@ -156,67 +170,41 @@ if __name__ == '__main__':
     scenarios = []
     num_scenarios = args.num_scenarios
 
-    num_buildings = args.num_buildings
-    if len(num_buildings) < num_scenarios:
-        num_buildings = [num_buildings[0] for _ in range(num_scenarios)]
-    pv_mean = args.pv_mean
-    if len(pv_mean) < num_scenarios:
-        pv_mean = [pv_mean[0] for _ in range(num_scenarios)]
-    pv_var = args.pv_var
-    if len(pv_var) < num_scenarios:
-        pv_var = [pv_var[0] for _ in range(num_scenarios)]
-    pv_bern = args.pv_bern
-    if len(pv_mean) < num_scenarios:
-        pv_bern = [pv_bern[0] for _ in range(num_scenarios)]
-    batt_mean = args.batt_mean
-    if len(batt_mean) < num_scenarios:
-        batt_mean = [batt_mean[0] for _ in range(num_scenarios)]
-    batt_var = args.batt_var
-    if len(batt_var) < num_scenarios:
-        batt_var = [batt_var[0] for _ in range(num_scenarios)]
-    batt_bern = args.batt_bern
-    if len(batt_mean) < num_scenarios:
-        batt_bern = [batt_bern[0] for _ in range(num_scenarios)]
-    
+    num_buildings = expand_list(args.num_buildings, num_scenarios)
+    pv_mean = expand_list(args.pv_mean, num_scenarios)
+    pv_var = expand_list(args.pv_var, num_scenarios)
+    pv_bern = expand_list(args.pv_bern, num_scenarios)
+    batt_mean = expand_list(args.batt_mean, num_scenarios)
+    batt_var = expand_list(args.batt_var, num_scenarios)
+    batt_bern = expand_list(args.batt_bern, num_scenarios)
 
-    pv_mean_mean = args.pv_mean_mean
-    pv_mean_var = args.pv_mean_var
-    if pv_mean_mean >= 0 and pv_mean_var >= 0:
-        pv_mean = torch.normal(pv_mean_mean, pv_mean_var, num_scenarios).tolist()
-    pv_var_mean = args.pv_var_mean
-    pv_var_var = args.pv_var_var
-    if pv_var_mean >= 0 and pv_var_var >= 0:
-        pv_var = torch.normal(pv_var_mean, pv_var_var, num_scenarios).tolist()
-    pv_bern_mean = args.pv_bern_mean
-    pv_bern_var = args.pv_bern_var
-    if pv_bern_mean >= 0 and pv_bern_var >= 0:
-        pv_bern = torch.normal(pv_bern_mean, pv_bern_var, num_scenarios).tolist()
-    
-    batt_mean_mean = args.batt_mean_mean
-    batt_mean_var = args.batt_mean_var
-    if batt_mean_mean >= 0 and batt_mean_var >= 0:
-        batt_mean = torch.normal(batt_mean_mean, batt_mean_var, num_scenarios).tolist()
-    batt_var_mean = args.batt_var_mean
-    batt_var_var = args.batt_var_var
-    if batt_var_mean >= 0 and batt_var_var >= 0:
-        batt_var = torch.normal(batt_var_mean, batt_var_var, num_scenarios).tolist()
-    batt_bern_mean = args.batt_bern_mean
-    batt_bern_var = args.batt_bern_var
-    if batt_bern_mean >= 0 and batt_bern_var >= 0:
-        batt_bern = torch.normal(batt_bern_mean, batt_bern_var, num_scenarios).tolist()
+    pv_mean = return_normal_list(args.pv_mean_mean, args.pv_mean_var, num_scenarios, pv_mean, False)
+    pv_var = return_normal_list(args.pv_var_mean, args.pv_var_var, num_scenarios, pv_var, True)
+    # Negative probabilities are set to 0, probabilities greater than 1 are treated equivalently to a probability of 1
+    pv_bern = return_normal_list(args.pv_bern_mean, args.pv_bern_var, num_scenarios, pv_bern, True)
+
+    batt_mean = return_normal_list(args.batt_mean_mean, args.batt_mean_var, num_scenarios, batt_mean, False)
+    batt_var = return_normal_list(args.batt_var_mean, args.batt_var_var, num_scenarios, batt_var, True)
+    # Negative probabilities are set to 0, probabilities greater than 1 are treated equivalently to a probability of 1
+    batt_bern = return_normal_list(args.batt_bern_mean, args.batt_bern_var, num_scenarios, batt_bern, True) 
 
         
 
     
     for i in range(num_scenarios):
-        pv = [0 if torch.rand() < pv_bern[i] else torch.normal(pv_mean[i], pv_var[i]) for _ in range(num_buildings[i])]
-        batt = [0 if torch.rand() < batt_bern[i] else torch.normal(batt_mean[i], batt_var[i]) for _ in range(num_buildings[i])]
+        pv = [0 if np.random.rand() < pv_bern[i] else np.random.normal(pv_mean[i], pv_var[i]) for _ in range(num_buildings[i])]
+        batt = [0 if np.random.rand() < batt_bern[i] else np.random.normal(batt_mean[i], batt_var[i]) for _ in range(num_buildings[i])]
+        
+        # force all pv and batt values to be nonnegative and round to integer values
+        pv = [max(0, round(i)) for i in pv]
+        batt = [max(0, round(i)) for i in batt]
+
         scenario = {
             "pv": pv,
             "batt": batt
         }
         scenarios.append(scenario)
 
-    with open(args.custom_config, "w") as f:
+    with open(args.custom_scenario, "w") as f:
         json.dump(scenarios, f, indent=4)
 
