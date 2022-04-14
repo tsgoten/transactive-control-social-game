@@ -1,3 +1,2 @@
 #!/bin/bash
-python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg_configs/simple_manyagents.json --num_gpus=1 --num_mg_workers=2 --num_steps=10000 --batch_size=16 --learning_rate=0.0005260844671580459 --n_layers=1 --ppo_clip_param=0.607258611223942 --ppo_num_sgd_iter=6 --sizes=4 --exp_name=simple_20agents
-python ExperimentRunner.py -w --gym_env=microgrid_multi --custom_config=configs/mg_configs/simple_20agents.json --num_gpus=1 --num_mg_workers=2 --num_steps=100000 --batch_size=16 --use_hnet --hnet_embedding_dim=322 --hnet_lr=0.004697687912444648 --hnet_num_hidden=198 --hnet_num_layers=2 --hnet_num_local_steps=20 --learning_rate=0.004223331881088467 --n_layers=1 --ppo_clip_param=0.6098559462062045 --ppo_num_sgd_iter=2 --sizes=8 --exp_name=simple_20agents
+echo $1
