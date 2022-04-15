@@ -1,0 +1,302 @@
+[
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 0,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 1,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 2,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 3,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 4,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 5,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 6,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 7,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 8,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 9,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 10,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 11,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 12,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 13,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 14,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 15,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 16,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 17,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 18,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 19,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 20,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 21,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 22,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 23,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 24,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 25,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 26,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 27,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 28,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 29,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 30,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 31,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 32,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 33,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 34,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 35,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 36,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 37,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 38,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 39,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 40,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 41,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 42,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 43,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 44,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 45,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 46,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 47,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 48,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 49,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    }
+]
