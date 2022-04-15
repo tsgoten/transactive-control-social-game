@@ -1,13 +1,13 @@
 #!/bin/bash
 cd gym-microgrid/
 (
-flock -s 200
+flock -e 200
 pip install -e .
 ) 200>lockfile
 cd ..
 cd gym-socialgame
 (
-flock -s 200
+flock -e 200
 pip install -e .
 ) 200>lockfile
 
