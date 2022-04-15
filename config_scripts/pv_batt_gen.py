@@ -11,8 +11,8 @@ import random
     Scenarios are generated from normal distributions. For both pvsizes and battery_nums, there is a mean, variance, and
     bernoulli zeroing parameter. The parameters for these distributions can also be normally generated, or can be set to
     manually inputted values. Manual inputs (--pv_mean, etc) can be single values (used for all scenarios) or a list
-    (used for corresponding scenario). To generate a parameter, set the mean and variance for that parameter (--pv_mean_mean
-    and --pv_mean_var to generate --pv_mean).
+    (used for corresponding scenario). To generate a parameter, set the mean and variance (alpha/beta for bern) for that
+    parameter (--pv_mean_mean and --pv_mean_var to generate --pv_mean).
 
 
 
@@ -35,11 +35,11 @@ import random
     method is useful for specific inputs, especially those that are intended to be the same for all scenarios (such as
     a constant zeroing bernoulli probability, for example).
 
-    Alternatively, one can set --pv_mean_mean, --pv_mean_var, --pv_var_mean, --pv_var_var, --pv_bern_mean, and
-    --pv_bern_var (and the corresponding batt parameters) to describe the distributions from which pv_means, pv_vars, 
-    and pv_berns are drawn from for each scenario. For example, the pv_mean for each scenario is taken from a normal
-    distribution with mean pv_mean_mean and variance pv_mean_var. This method is recommended for introducing variance 
-    between scenarios.
+    Alternatively, one can set --pv_mean_mean, --pv_mean_var, --pv_var_mean, --pv_var_var, --pv_bern_alpha, and
+    --pv_bern_beta (and the corresponding batt parameters) to describe the distributions from which pv_means, pv_vars, 
+    (normal) and pv_berns (beta) are drawn from for each scenario. For example, the pv_mean for each scenario is taken
+    from a normal distribution with mean pv_mean_mean and variance pv_mean_var. This method is recommended for introducing
+    variance between scenarios.
 
     
     Behavior of note:
@@ -54,8 +54,9 @@ import random
           above 1 will be treated as 1.
         - In order to use distribution parameter generation (--pv_mean_mean, etc), both the mean and the variance
           components for that parameter must be set to a non-negative value (e.g. to generate pv_means, both --pv_mean_mean
-          and --pv_mean_var must be > 0). If this occurs, it will override the manually input values (--pv_means), if present.
+          and --pv_mean_var must be >= 0). If this occurs, it will override the manually input values (--pv_means), if present.
           Otherwise, if both are not non-negative, it will default to the corresponding manual input.
+        - Bernoulli zeroing probability Beta distribution probabilities must be positive rather than non-negative
         - It is entirely permissible to mix manual input (such as --pv_bern values) and generated parameters (such as
           --pv_var_mean and --pv_var_var).
 
@@ -144,39 +145,37 @@ import random
             - if used, will override pv_var if present
             - default is -1 (off)
 
-        --pv_bern_mean:
-            - mean of the pv_berns across all scenarios
+        --pv_bern_alpha:
+            - alpha parameter for the beta distribution from which pv_berns are drawn
             - single float
             - must be non-negative to be used
-            - requires pv_bern_var to also be set to be used
+            - requires pv_bern_beta to also be set to be used
             - if used, will override pv_bern if present
             - default is -1 (off)
-            - numbers between 0 and 1 recommended
         
-        --pv_bern_var:
-            - variance of the pv_berns across all scenarios
+        --pv_bern_beta:
+            - beta parameter for the beta distribution from which pv_berns are drawn
             - single float
-            - must be non-negative to be used
-            - requires pv_bern_mean to also be set to be used
+            - must be positive to be used
+            - requires pv_bern_alpha to also be set to be used
             - if used, will override pv_bern if present
             - default is -1 (off)
-            - small numbers < 1 recommended
 
         --batt_mean, --batt_var, --batt_bern, --batt_mean_mean, --batt_mean_var, --batt_var_mean, --batt_var_var,
-            --batt_bern_mean, --batt_bern_var:
+            --batt_bern_alpha, --batt_bern_beta:
 
             - behavior is the same as the corresponding pv entry above.
 
 
     Use Example:
 
-    'python .\config_scripts\pv_batt_gen.py
+    'python ./config_scripts/pv_batt_gen.py
       --num_scenarios 10
-      --custom_scenario./configs/pv_batt_configs/your_name_here.json
+      --custom_scenario ./configs/pv_batt_configs/your_name_here.json
       --num_buildings 100
       --pv_mean_mean 100 --pv_mean_var 10
       --pv_var_mean 20 --pv_var_var 0
-      --pv_bern 0
+      --pv_bern_alpha 2 --pv_bern_beta 5
       --batt_mean 30 40 50 30 20 30 0 90 20 0
       --batt_var_mean 10 --batt_var_var 5
       --batt_bern 0.2'
@@ -185,10 +184,10 @@ import random
     For each scenario, 100 buildings worth of values is generated (actual number of buildings used controlled by the microgrid
     itself). The mean of the pv distribution across buildings for each scenario is generated from Normal(100, 10), while the
     variance of the pv distribution across buildings for each scenario is generated from Normal(20, 0) [Note that this is
-    functionally identical to simply setting pv_var to 20]. We do not additionally zero out any pvsizes. The means of the
-    battery_nums for each scenario is set to the ten numbers listed. The variance of the battery_num distribution across
-    buildings for each scenario is generated from Normal(10, 5). A given building in every scenario has a 20% chance of having
-    no batteries.
+    functionally identical to simply setting pv_var to 20]. For each scenario, the probability of zeroing the pvsize for a given
+    building is drawn from Beta(2, 5). The means of the battery_nums for each scenario is set to the ten numbers listed. The
+    variance of the battery_num distribution across buildings for each scenario is generated from Normal(10, 5). A given building
+    in every scenario has a 20% chance of having no batteries.
 
     When generating battery_nums for scenario index 0, a variance 'v' is sampled from Normal(10, 5) and used to create scenario
     index 0's battery_num distribution Normal(30, v). We repeat this 100 (num_buildings) times: with probability (1 - 0.2),
@@ -255,15 +254,15 @@ def add_args(parser):
         default = -1,
         help="Variance of pv_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
-        "--pv_bern_mean",
+        "--pv_bern_alpha",
         type=float,
         default = -1,
-        help="Mean of pv_berns, for generation. If < 0, use list of berns")
+        help="Alpha parameter used to generate pv_berns, for generation. If < 0, use list of berns")
     parser.add_argument(
-        "--pv_bern_var",
+        "--pv_bern_beta",
         type=float,
         default = -1,
-        help="Variance of pv_berns, for generation. If < 0, use list of berns")
+        help="Beta parameter used to generate pv_berns, for generation. If < 0, use list of berns")
         
     # batt parameters
     parser.add_argument(
@@ -305,15 +304,15 @@ def add_args(parser):
         default = -1,
         help="Variance of batt_vars, for generation. If < 0, use list of vars")
     parser.add_argument(
-        "--batt_bern_mean",
+        "--batt_bern_alpha",
         type=float,
         default = -1,
-        help="Mean of batt_berns, for generation. If < 0, use list of berns")
+        help="Alpha parameter used to generate batt_berns, for generation. If <= 0, use list of berns")
     parser.add_argument(
-        "--batt_bern_var",
+        "--batt_bern_beta",
         type=float,
         default = -1,
-        help="Variance of batt_berns, for generation. If < 0, use list of berns")
+        help="Beta parameter used to generate batt_berns, for generation. If <= 0, use list of berns")
     return parser
     
 
@@ -328,6 +327,12 @@ def return_normal_list(mean, var, n, lst, nonNegative):
         rv = np.random.normal(mean, var, n)
     if nonNegative:
         rv[rv < 0] = 0
+    return rv.tolist()
+
+def return_beta_list(alpha, beta, n, lst):
+    rv = np.array(lst)
+    if alpha > 0 and beta > 0:
+        rv = np.random.beta(alpha, beta, n)
     return rv.tolist()
 
 if __name__ == '__main__':
@@ -348,13 +353,11 @@ if __name__ == '__main__':
 
     pv_mean = return_normal_list(args.pv_mean_mean, args.pv_mean_var, num_scenarios, pv_mean, False)
     pv_var = return_normal_list(args.pv_var_mean, args.pv_var_var, num_scenarios, pv_var, True)
-    # Negative probabilities are set to 0, probabilities greater than 1 are treated equivalently to a probability of 1
-    pv_bern = return_normal_list(args.pv_bern_mean, args.pv_bern_var, num_scenarios, pv_bern, True)
+    pv_bern = return_beta_list(args.pv_bern_alpha, args.pv_bern_beta, num_scenarios, pv_bern)
 
     batt_mean = return_normal_list(args.batt_mean_mean, args.batt_mean_var, num_scenarios, batt_mean, False)
     batt_var = return_normal_list(args.batt_var_mean, args.batt_var_var, num_scenarios, batt_var, True)
-    # Negative probabilities are set to 0, probabilities greater than 1 are treated equivalently to a probability of 1
-    batt_bern = return_normal_list(args.batt_bern_mean, args.batt_bern_var, num_scenarios, batt_bern, True) 
+    batt_bern = return_beta_list(args.batt_bern_alpha, args.batt_bern_beta, num_scenarios, batt_bern) 
 
         
 
