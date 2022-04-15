@@ -1,9 +1,9 @@
 #!/bin/bash
 cd gym-microgrid/
-setlock lockfile pip install -e .
+pip install -e .
 cd ..
 cd gym-socialgame
-setlock lockfile pip install -e .
+pip install -e .
 cd ..
 #pip install tensorflow
 #pip install keras
