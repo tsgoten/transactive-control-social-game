@@ -4,6 +4,7 @@ from gym import spaces
 import numpy as np
 import pandas as pd 
 import random
+import json
 
 from gym_microgrid.envs.utils import price_signal
 from gym_microgrid.envs.agents import *
@@ -46,6 +47,7 @@ class MicrogridEnv(gym.Env):
         starting_day=None, 
         no_rl_control=False,
         no_external_grid=False,
+        pv_batt_config_path="",
         **kwargs
         ):
         """
@@ -84,6 +86,7 @@ class MicrogridEnv(gym.Env):
         self.starting_day = starting_day
         self.no_rl_control=no_rl_control
         self.no_external_grid = no_external_grid
+        self.pv_batt_config_path = pv_batt_config_path
 
         self.smirl_weight = smirl_weight
         self.use_smirl = smirl_weight > 0 if smirl_weight else False
@@ -167,42 +170,53 @@ class MicrogridEnv(gym.Env):
         """
         prosumer_dict = {}
 
-        # Manually set battery numbers and PV sizes
+        # Use a pv_batt_config file
 
-        ## large and constant batt and PV
-        if self.complex_batt_pv_scenario == 1:
-            battery_nums = [50]*self.number_of_participants
-            pvsizes = [100]*self.number_of_participants
-
-        ## small PV sizes
-        elif self.complex_batt_pv_scenario == 2: 
-            pvsizes = [ 0, 10, 100, 10, 0, 0, 0, 55, 10, 10 ]
-            battery_nums = [ 0, 0, 50, 30, 50, 0, 0, 10, 40, 50 ]
-
-        ## medium PV sizes and different
-        elif self.complex_batt_pv_scenario == 3:
-            pvsizes = [ 70, 110, 400, 70, 30, 0, 0, 55, 10, 20 ]
-            battery_nums = [ 0, 0, 150, 30, 50, 0, 0, 100, 40, 150]
-
-        ## no batteries 
-        elif self.complex_batt_pv_scenario == 4:
-            pvsizes = [ 70, 110, 400, 70, 30, 0, 0, 55, 10, 20 ]
-            battery_nums = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-        
-        # no solar 
-        elif self.complex_batt_pv_scenario == 5:
-            pvsizes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-            battery_nums = [ 0, 0, 150, 30, 50, 0, 0, 100, 40, 150 ]
-        
-        # nothing at all 
-        elif self.complex_batt_pv_scenario == 6:
-            pvsizes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-            battery_nums = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-
-        # wrong number 
+        if self.pv_batt_config_path != "":
+            with open(self.pv_batt_config_path, "r") as f:
+                pv_batt_dict = json.load(f)[self.complex_batt_pv_scenario]
+                pvsizes = pv_batt_dict["pv"]
+                battery_nums = pv_batt_dict["batt"]
+                print("-----------------------------------pvsizes: ", pvsizes)
+                print("-----------------------------------battery_nums: ", battery_nums)
         else:
-            print("you've inputted an incorrect scenario")
-            raise AssertionError
+
+            # Manually set battery numbers and PV sizes
+
+            ## large and constant batt and PV
+            if self.complex_batt_pv_scenario == 1:
+                pvsizes = [100]*self.number_of_participants
+                battery_nums = [50]*self.number_of_participants
+
+            ## small PV sizes
+            elif self.complex_batt_pv_scenario == 2: 
+                pvsizes = [ 0, 10, 100, 10, 0, 0, 0, 55, 10, 10 ]
+                battery_nums = [ 0, 0, 50, 30, 50, 0, 0, 10, 40, 50 ]
+
+            ## medium PV sizes and different
+            elif self.complex_batt_pv_scenario == 3:
+                pvsizes = [ 70, 110, 400, 70, 30, 0, 0, 55, 10, 20 ]
+                battery_nums = [ 0, 0, 150, 30, 50, 0, 0, 100, 40, 150]
+
+            ## no batteries 
+            elif self.complex_batt_pv_scenario == 4:
+                pvsizes = [ 70, 110, 400, 70, 30, 0, 0, 55, 10, 20 ]
+                battery_nums = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+            
+            # no solar 
+            elif self.complex_batt_pv_scenario == 5:
+                pvsizes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+                battery_nums = [ 0, 0, 150, 30, 50, 0, 0, 100, 40, 150 ]
+            
+            # nothing at all 
+            elif self.complex_batt_pv_scenario == 6:
+                pvsizes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+                battery_nums = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+
+            # wrong number 
+            else:
+                print("you've inputted an incorrect scenario")
+                raise AssertionError
 
         pvsizes = pvsizes[:self.number_of_participants]
         battery_nums = battery_nums[:self.number_of_participants]
