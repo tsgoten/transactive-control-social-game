@@ -2,13 +2,13 @@
 cd gym-microgrid/
 (
 flock -x 200
-pip install -e .
+rm -rf ~/.local && pip install -e .
 ) 200 > ../lockfile
 cd ..
 cd gym-socialgame
 (
 flock -x 200
-pip install -e .
+rm -rf ~/.local && pip install -e .
 ) 200 > ../lockfile
 
 cd ..
