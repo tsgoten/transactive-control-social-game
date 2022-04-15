@@ -216,6 +216,7 @@ class MicrogridEnv(gym.Env):
             # wrong number 
             else:
                 print("you've inputted an incorrect scenario")
+                print("PV BATT CONFIG PATH IS:", self.pv_batt_config_path)
                 raise AssertionError
 
         pvsizes = pvsizes[:self.number_of_participants]
