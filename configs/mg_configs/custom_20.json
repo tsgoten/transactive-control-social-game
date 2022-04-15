@@ -1,0 +1,122 @@
+[
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 0,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 1,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 2,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 3,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 4,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 5,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 6,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 7,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 8,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 9,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 10,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 11,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 12,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 13,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 14,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 15,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 16,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 17,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 18,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    },
+    {
+        "number_of_participants": 10,
+        "complex_batt_pv_scenario": 19,
+        "num_mg_optim_steps": 10,
+        "max_episode_steps": 7
+    }
+]
