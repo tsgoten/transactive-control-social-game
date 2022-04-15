@@ -57,7 +57,7 @@ def get_agent(args):
         device = 'cpu'
     if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
         
-        if args.algo=="ppo":
+        if args.algo=="ppo" or "afl_ppo":
             #pass
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
             if args.use_agg_data:
@@ -86,7 +86,7 @@ def get_agent(args):
             raise NotImplementedError
 
     #### Algorithm: PPO ####
-    if args.algo == "ppo" or "ccppo" or "single_ppo":
+    if args.algo in ["ppo", "ccppo", "single_ppo", "afl_ppo"]:
         # Modify the default configs for PPO
         default_config = ray_ppo.DEFAULT_CONFIG.copy()
         #merge config with default config (with ours overwriting in case of clashes)
@@ -129,7 +129,7 @@ def get_agent(args):
 
         if args.wandb:
             wandb.save(out_path)
-        if args.algo == "ppo" or "single_ppo":
+        if args.algo in ["ppo", "single_ppo", "afl_ppo"]:
             
             ret = ray_ppo.PPOTrainer(
                 config = config, 
@@ -202,6 +202,27 @@ def pfl_hnet_update(agent, result, args, old_weights):
     #agent.set_weights(detach_weights(new_weight_dict))
     return result, new_weight_dict
 
+def afl_update(agent, result, args, initial_update=False):
+    curr_weights = agent.get_weights()
+    avg_weights = OrderedDict()
+    normalizer = 1 if initial_update else len(curr_weights) 
+    with torch.no_grad():
+        for agent_id in curr_weights.keys():
+            for k in curr_weights[agent_id].keys():
+                curr_weight_tensor = torch.tensor(curr_weights[agent_id][k], device=device)
+                if k not in avg_weights:
+                    avg_weights[k] = curr_weight_tensor / normalizer
+                elif not initial_update:
+                    avg_weights[k] += curr_weight_tensor / normalizer
+    new_weight_dict = {}
+    for agent_id in curr_weights.keys():
+        new_weight_dict[agent_id] = {k: v.clone().detach() for k, v in avg_weights.items()}#deepcopy(avg_weights)
+    # Set weights of each worker, including remote replicas
+    for w in agent.workers.remote_workers():
+        w.set_weights.remote(new_weight_dict)
+    #agent.set_weights(detach_weights(new_weight_dict))
+    return result, new_weight_dict
+
 def detach_weights(weights):
     new_weights = {}
     for agent_id, agent_params in weights.items():
@@ -229,25 +250,32 @@ def train(agent, args):
     print("Beginning training.")
     to_log = []
     training_steps = 0
-    if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet:
-        weights = {}
-        for agent_id in range(hnet.n_nodes):
-            if args.use_agg_data:
-                weights[str(agent_id)] = hnet(agg_data_dict[str(agent_id)])
-            else:
-                weights[str(agent_id)] = hnet(agent_id)
-        # Set weights of each worker, including remote replicas
-        #agent.workers.foreach_worker(lambda ev: ev.get_policy().set_weights(detach_weights(weights)))
-        agent.set_weights(detach_weights(weights))
+    if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
+        if args.use_hnet:
+            weights = {}
+            for agent_id in range(hnet.n_nodes):
+                if args.use_agg_data:
+                    weights[str(agent_id)] = hnet(agg_data_dict[str(agent_id)])
+                else:
+                    weights[str(agent_id)] = hnet(agent_id)
+            # Set weights of each worker, including remote replicas
+            #agent.workers.foreach_worker(lambda ev: ev.get_policy().set_weights(detach_weights(weights)))
+            agent.set_weights(detach_weights(weights))
+        if algo == "afl_ppo":
+            result, weights = afl_update(agent, {}, args, initial_update=True)
     #breakpoint()
     num_train_steps = 0
     while training_steps < num_steps:
         result = agent.train()
         training_steps = result["timesteps_total"]
         num_train_steps += 1
-        if args.gym_env in ["socialgame_multi", "microgrid_multi"] and args.use_hnet and num_train_steps % args.hnet_num_local_steps == 0:
-            print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
-            result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
+        if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
+            if args.use_hnet and num_train_steps % args.hnet_num_local_steps == 0:
+                print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
+                result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
+            if algo == "afl_ppo" and num_train_steps % args.afl_num_local_steps == 0:
+                print("****\nAFL UPDATE AT TIMESTEP {}\n****".format(training_steps))
+                result, weights = afl_update(agent, result, args, initial_update=False)
         
         log = {name: result[name] for name in to_log}
         wandb.log(result['custom_metrics'])
@@ -299,7 +327,7 @@ parser.add_argument(
     help="RL Algorithm",
     type=str,
     default="ppo",
-    choices=["sac", "ppo", "maml", "uc_bandit", "ccppo", "single_ppo"]
+    choices=["sac", "ppo", "maml", "uc_bandit", "ccppo", "single_ppo", "afl_ppo"]
 )
 parser.add_argument(
     "--num_workers",
@@ -553,6 +581,12 @@ parser.add_argument(
 parser.add_argument(
     "--hnet_num_local_steps",
     help = "Number of local steps between hnet updates",
+    type=int,
+    default=1
+)
+parser.add_argument(
+    "--afl_num_local_steps",
+    help = "Number of local steps between afl updates",
     type=int,
     default=1
 )
