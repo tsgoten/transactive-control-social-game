@@ -494,6 +494,12 @@ parser.add_argument(
     action="store_true"
 )
 parser.add_argument(
+    "--tag",
+    help="What tag to put on wandb run",
+    type=str,
+    default=None
+)
+parser.add_argument(
     # "--base_log_dir",
     "--log_path",
     help="Base directory for tensorboard logs",
@@ -647,7 +653,10 @@ if __name__ == "__main__":
 
     # Uploading logs to wandb
     if args.wandb:
-        wandb.init(project="energy-demand-response-game", entity="social-game-rl")
+        tags = []
+        if args.tag is not None:
+            tags.append(args.tag)
+        wandb.init(project="energy-demand-response-game", entity="social-game-rl", tags=tags)
         wandb.tensorboard.patch(root_logdir=args.log_path) # patching the logdir directly seems to work
         wandb.config.update(args)
 
