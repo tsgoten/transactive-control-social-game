@@ -62,7 +62,11 @@ def get_agent(args):
             #p {k: {k2: v2.shape for k2, v2 in v.items()} for k, v in agent.get_weights().items()}
             if args.use_agg_data:
                 for i, e in enumerate(dummy_env.envs):
-                    agg_data = [i] + [pv / 300 for pv in e.pv_sizes] + [b / 150 for b in e.battery_sizes]
+                    if args.hnet_embedding_dim == 0:
+                        agg_data = []
+                    else:
+                        agg_data = [i]
+                    agg_data += [pv / 200 for pv in e.pv_sizes] + [b / 200 for b in e.battery_sizes]
                     agg_data_dict[str(i)] = torch.tensor(agg_data).to(device=device)
             config["multiagent"] = {
                 "policies": {str(i): (ray_ppo.PPOTorchPolicy, obs_space, act_space, {"fcnet_hidden": [args.sizes] * args.n_layers,
@@ -161,7 +165,11 @@ def get_agent(args):
                         input_size=input_size,
                         use_layernorm=args.hnet_use_layernorm,
                         dropout = args.hnet_dropout)
+            if args.hnet_load_ckpt is not None:
+                print("Loading HNET weights from {}".format(args.hnet_load_ckpt))
+                hnet.load_state_dict(torch.load(args.hnet_load_ckpt))
             hnet_optimizer = optim.Adam(hnet.parameters(), lr=args.hnet_lr, weight_decay = args.hnet_l2_reg)
+            wandb.watch(hnet)
         return ret
 
     # Add more algorithms here. 
@@ -189,6 +197,8 @@ def pfl_hnet_update(agent, result, args, old_weights):
             p.grad = g / num_agents 
     torch.nn.utils.clip_grad_norm_(hnet.parameters(), 50)
     hnet_optimizer.step()
+    if args.hnet_save_ckpt is not None:
+        torch.save(hnet.state_dict(), args.hnet_save_ckpt)
     new_weight_dict = {}
     for agent_id in curr_weights.keys():
         if args.use_agg_data:
@@ -618,10 +628,23 @@ parser.add_argument(
     default=0
 )
 parser.add_argument(
+    "--hnet_load_ckpt",
+    type=str,
+    default=None,
+    help="Checkpoint path to load hnet weights from"
+)
+parser.add_argument(
+    "--hnet_save_ckpt",
+    type=str,
+    default=None,
+    help="Checkpoint path to save hnet weights to"
+)
+parser.add_argument(
     "--use_agg_data",
     action='store_true',
     help="include environment data",
 )
+
 
 # Local network parameters
 parser.add_argument(

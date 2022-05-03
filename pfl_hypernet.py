@@ -23,26 +23,35 @@ class PFL_Hypernet(nn.Module):
         self.register_parameter(name='shifts', param=shifts)
         self.register_parameter(name='scales', param=scales)
         self.validate_inputs(n_nodes, embedding_dim, num_layers, num_hidden, lr)
-        
-        self.embedding = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
-
-        self.layers = [self.embedding]
+        if self.input_size == 1:
+            self.embedding = nn.Embedding(num_embeddings=n_nodes, embedding_dim=embedding_dim)
+        else:
+            self.embedding = nn.Linear(input_size-1, embedding_dim)
+            self.layers = [self.embedding]
         if num_layers == 1:
             self.layers.append(nn.Linear(embedding_dim + input_size - 1, self.out_dim))
         else:
             self.layers.append(nn.Linear(embedding_dim + input_size - 1, num_hidden))
             for i in range(1, num_layers - 1):
+                #Add activation function
                 self.layers.append(nn.ReLU())
+                #Add Layernorm
                 if self.use_layernorm:
                     self.layers.append(nn.LayerNorm(num_hidden))
+                #Add dropout
                 if self.dropout > 0:
                     self.layers.append(nn.Dropout(self.dropout))
-                self.layers.append(nn.Linear(num_hidden, num_hidden))
+                #Add next linear layer
+                self.layers.append(nn.Linear(num_hidden, num_hidden))\
+            #Add penultimate activation
             self.layers.append(nn.ReLU())
+            #Add penultimate layernorm
             if self.use_layernorm:
                 self.layers.append(nn.LayerNorm(num_hidden))
+                #Add penultimate dropout
             if self.dropout > 0:
                 self.layers.append(nn.Dropout(self.dropout))
+            #Add output layer
             self.layers.append(nn.Linear(num_hidden, self.out_dim))
         if self.input_size != 1:
             self.embedding = self.embedding.to(device)
@@ -89,7 +98,7 @@ class PFL_Hypernet(nn.Module):
     def validate_inputs(self, n_nodes, embedding_dim, num_layers, num_hidden, lr):
         assert n_nodes > 0, "n_nodes <= 0"
         assert isinstance(n_nodes, int) == True, "n_nodes must be an int"
-        assert embedding_dim > 0, "embedding_dim <= 0"
+        assert embedding_dim >= 0, "embedding_dim <= 0"
         assert isinstance(embedding_dim, int) == True, "embedding_dim must be an int"
         assert num_layers > 0, "num_layers <= 0"
         assert isinstance(num_layers, int) == True, "num_layers must be an int"
@@ -101,7 +110,7 @@ class PFL_Hypernet(nn.Module):
         # return self.create_weight_dict(self.net(torch.tensor(x).to(self.device)))
 
         if self.input_size != 1:
-            embed = self.layers[0](torch.tensor(x[0], dtype=torch.int64).to(self.device))
+            embed = self.layers[0](torch.tensor(x[1:]).float().to(self.device))
             net_input = torch.cat([embed, torch.tensor(x[1:]).float().to(self.device)], dim=0)
             return self.create_weight_dict(self.net(net_input.unsqueeze(0)))
         else:
