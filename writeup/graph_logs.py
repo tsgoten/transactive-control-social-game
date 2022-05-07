@@ -14,7 +14,7 @@ def ma(data, window_width=5):
     # print("ma", ma_vec.shape)
     return np.concatenate([data[:window_width], ma_vec])
 
-def read_results(PATH, TAG, name_func):
+def read_results(PATH, TAG, name_func, cutoff=10000000):
     df = pd.read_csv(PATH)
     col_names = df.columns
     groups = {}
@@ -25,26 +25,37 @@ def read_results(PATH, TAG, name_func):
             # Skip step parameter
             continue
         grp, tag = name.split(' - ')
+        orig_grp = grp
         parts = tag.strip().split('__')
         print(grp, tag)
         if TAG == tag.strip():
             groups[grp] = df.iloc[:, [0, i]]
             groups[grp] = groups[grp].dropna()
-            groups[grp] = groups[grp][groups[grp].iloc[:, 0] < 30000]
+            groups[grp] = groups[grp][groups[grp].iloc[:, 0] < cutoff]
         if len(parts) > 1 and parts[0] == TAG:
             grp = name_func(grp)
             if parts[1] == 'MAX':
                 group_maxs[grp] = df.iloc[:, [0, i]]
                 group_maxs[grp] = group_maxs[grp].dropna()
-                group_maxs[grp] = group_maxs[grp][group_maxs[grp].iloc[:, 0] < 30000]
+                group_maxs[grp] = group_maxs[grp][group_maxs[grp].iloc[:, 0] < cutoff]
             elif parts[1] == 'MIN':
                 group_mins[grp] = df.iloc[:, [0, i]]
                 group_mins[grp] = group_mins[grp].dropna()
-                group_mins[grp] = group_mins[grp][group_mins[grp].iloc[:, 0] < 30000]
+                group_mins[grp] = group_mins[grp][group_mins[grp].iloc[:, 0] < cutoff]
+            elif parts[1] in ['std', 'ste']:
+                print(orig_grp, grp)
+                group_mins[grp] = df.iloc[:, [0, i]]
+                group_mins[grp] = group_mins[grp].dropna()
+                group_mins[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] - group_mins[grp][group_mins[grp].iloc[:, 0] < cutoff].iloc[:, 1]
+
+                group_maxs[grp] = df.iloc[:, [0, i]]
+                group_maxs[grp] = group_maxs[grp].dropna()
+                group_maxs[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] + group_maxs[grp][group_maxs[grp].iloc[:, 0] < cutoff].iloc[:, 1]
+                print(groups[orig_grp].shape, group_maxs[grp].shape, group_mins[grp].shape)
             
     return groups, group_maxs, group_mins
 
-def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False):
+def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False, err_scale=1):
     if data_dir:
         PATH = os.path.join(data_dir, PATH)
     groups, group_maxs, group_mins = read_results(PATH, TAG, name_func)
@@ -62,8 +73,10 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
         if window_width > 1 and (name != "Baseline" or not smooth_baseline):
             ys = ma(ys, window_width)
             # xs = xs[window_width//2:-window_width//2+1]
+        
         errs = np.zeros_like(xs)
         if name in group_maxs:
+            print(name, col_name, xs.shape, ys.shape, group_maxs[name].shape)
             max_df = group_maxs[name]
             max_ys = data_func(max_df.iloc[:, 1]).to_numpy()
             max_xs = max_df.iloc[:, 0].to_numpy()
@@ -84,7 +97,7 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
             #errs = errs[window_width//2:-window_width//2+1]
             if window_width > 1 and (name != "Baseline" or not smooth_baseline):
                 errs = ma(errs, window_width)
-                errs /= 2
+                errs /= err_scale
                 #min_xs = min_xs[window_width//2:-window_width//2+1]
             #plt.fill_between(max_xs, min_ys, max_ys, alpha=0.2)
 
@@ -109,9 +122,9 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
         plt.yticks(yticks)
     if xticks is not None:
         plt.xticks(xticks)
-    plt.legend(fontsize=10, bbox_to_anchor=(0.95, 1.05))
+    plt.legend(fontsize=10)
     plt.tight_layout()
     save_fig_name = os.path.join(figs_dir, "{}.{}".format(fig_name, format))
-    plt.savefig(save_fig_name, format=format, dpi=80)
+    plt.savefig(save_fig_name, format=format, dpi=180)
     if reset:
         plt.clf()
