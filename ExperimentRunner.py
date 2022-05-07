@@ -496,6 +496,11 @@ parser.add_argument(
     type=float,
     default=3e-4,
 )
+parser.add_argument(
+    "--no_rl_control",
+    help="Have the microgrid send the same prices as utility",
+    action="store_true",
+)
 # Logging Arguments
 parser.add_argument(
     "-w",
