@@ -1,3 +1,4 @@
+from cProfile import label
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
@@ -46,20 +47,24 @@ def read_results(PATH, TAG, name_func, cutoff=10000000):
                 print(orig_grp, grp)
                 group_mins[grp] = df.iloc[:, [0, i]]
                 group_mins[grp] = group_mins[grp].dropna()
-                group_mins[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] - group_mins[grp][group_mins[grp].iloc[:, 0] < cutoff].iloc[:, 1]
+                
+                group_mins[grp] = group_mins[grp][group_mins[grp].iloc[:, 0] < cutoff]
+                group_mins[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] - group_mins[grp].iloc[:, 1]
 
                 group_maxs[grp] = df.iloc[:, [0, i]]
                 group_maxs[grp] = group_maxs[grp].dropna()
-                group_maxs[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] + group_maxs[grp][group_maxs[grp].iloc[:, 0] < cutoff].iloc[:, 1]
+                group_maxs[grp] = group_maxs[grp][group_maxs[grp].iloc[:, 0] < cutoff]
+                group_maxs[grp].iloc[:, 1] = groups[orig_grp].iloc[:, 1] + group_maxs[grp].iloc[:, 1]
                 print(groups[orig_grp].shape, group_maxs[grp].shape, group_mins[grp].shape)
             
     return groups, group_maxs, group_mins
 
-def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False, err_scale=1):
+def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False, err_scale=1, cutoff=1000000000, plot_legend=True, legend_font=16):
     if data_dir:
         PATH = os.path.join(data_dir, PATH)
-    groups, group_maxs, group_mins = read_results(PATH, TAG, name_func)
+    groups, group_maxs, group_mins = read_results(PATH, TAG, name_func, cutoff)
     combined = list(groups.items())
+    max_x = 0
     for col_name, df in combined:
         
         if not name_filter(col_name):
@@ -70,6 +75,7 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
 
         ys = data_func(df.iloc[:, 1]).to_numpy()
         xs = df.iloc[:, 0].to_numpy()
+        max_x = max(max_x, np.max(xs))
         if window_width > 1 and (name != "Baseline" or not smooth_baseline):
             ys = ma(ys, window_width)
             # xs = xs[window_width//2:-window_width//2+1]
@@ -100,7 +106,7 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
                 errs /= err_scale
                 #min_xs = min_xs[window_width//2:-window_width//2+1]
             #plt.fill_between(max_xs, min_ys, max_ys, alpha=0.2)
-
+        breakpoint()
         if color_func == None:
             #plt.errorbar(xs, ys, label=name, linewidth=linewidth, yerr = errs)
             p = plt.plot(xs, ys, label=name, linewidth=linewidth)
@@ -109,20 +115,25 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
             #plt.errorbar(xs, ys, label=name, linewidth=linewidth, c='b', yerr=errs)
             p = plt.plot(xs, ys, label=name, linewidth=linewidth, c=color_func(name))
         plt.fill_between(xs, (ys - errs)[::1], (ys + errs)[::1], alpha=0.3, interpolate=True, facecolor=p[-1].get_color())
+    # if plot_norl:
+    #     plt.plot(range(max_x), np.ones([max_x])*220, label="No RL", linewidth=linewidth, c="brown")
 
 
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['left'].set_linewidth(axis_width)
     plt.gca().spines['bottom'].set_linewidth(axis_width)
-
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+    label_font=20
+    tick_font=16
+    plt.xlabel(x_label, fontsize=label_font)
+    plt.ylabel(y_label, fontsize=label_font)
     if yticks is not None:
-        plt.yticks(yticks)
+        plt.yticks(yticks, fontsize=tick_font)
     if xticks is not None:
-        plt.xticks(xticks)
-    plt.legend(fontsize=10)
+        plt.xticks(xticks, fontsize=tick_font)
+    plt.ylim(150, 700)
+    if plot_legend:
+        plt.legend(fontsize=legend_font)
     plt.tight_layout()
     save_fig_name = os.path.join(figs_dir, "{}.{}".format(fig_name, format))
     plt.savefig(save_fig_name, format=format, dpi=180)

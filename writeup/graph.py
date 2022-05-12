@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 from graph_logs import *
 import os
-xticks = [2500 * i for i in range(5)]
+
 def graph(file, window_width=5, smooth_baseline=True):
+    xticks = [2500 * i for i in range(5)]
     TAG="ray/tune/custom_metrics/agg/reward_mean_mean"
     FIGS_DIR = "figs/"
     FORMAT='png'
@@ -11,7 +12,7 @@ def graph(file, window_width=5, smooth_baseline=True):
     axis_width=3
     def name_func(name):
         if "hnet" in name:
-            return "PFL"
+            return "PFH"
         elif "afl" in name:
             return "FedAvg"
         elif "baseline" in name:
@@ -20,7 +21,7 @@ def graph(file, window_width=5, smooth_baseline=True):
             return "ERROR"
     
     def color_func(name):
-        if "PFL" in name:
+        if "PFH" in name:
             return "tab:blue"
         elif "FedAvg" in name:
             return "tab:red"
@@ -31,11 +32,37 @@ def graph(file, window_width=5, smooth_baseline=True):
 
     data_func = lambda x: x
     
-    yticks = [200 * i for i in range(4)]
+    yticks = [200 * i for i in range(1, 4)]
+    exp_type = None
+    if "simple" in file:
+        exp_type = "simple"
+    elif "medium" in file:
+        exp_type = "medium"
+    elif "complex" in file:
+        exp_type = "complex"
+    draw("norl_{}.csv".format(exp_type), 
+        TAG, 
+        "Time (days)", 
+        "Mean Microgrid Profit ($)", 
+        fig_name=file,
+        figs_dir=FIGS_DIR, 
+        format=FORMAT, 
+        linewidth=linewidth, 
+        axis_width=axis_width, 
+        name_func=lambda x: "No RL", 
+        xticks=xticks,
+        yticks=yticks,
+        window_width=window_width, 
+        data_func=data_func,
+        color_func=color_func,
+        smooth_baseline=smooth_baseline, 
+        plot_legend=False,
+        err_scale=1,
+        reset=False)
     draw(file + ".csv", 
         TAG, 
         "Time (days)", 
-        "Mean Profit per Microgrid", 
+        "Mean Microgrid Profit ($)", 
         fig_name=file,
         figs_dir=FIGS_DIR, 
         format=FORMAT, 
@@ -48,9 +75,11 @@ def graph(file, window_width=5, smooth_baseline=True):
         data_func=data_func,
         color_func=color_func,
         smooth_baseline=smooth_baseline, 
+        plot_legend=False,
         err_scale=2)
     
 def graph_zeroshot(file, window_width=5, smooth_baseline=True):
+    xticks = [1000 * i for i in range(5)]
     TAG="ray/tune/custom_metrics/agg/reward_mean_mean"
     FIGS_DIR = "figs/"
     FORMAT='png'
@@ -58,9 +87,9 @@ def graph_zeroshot(file, window_width=5, smooth_baseline=True):
     axis_width=3
     def name_func(name):
         if "zeroshot_hnet" in name:
-            return "Few-Shot PFL"
+            return "Few-Shot PFH"
         elif "hnet" in name:
-            return "Original PFL"
+            return "Original PFH"
         elif "baseline" in name:
             return "Baseline"
         else:
@@ -82,7 +111,7 @@ def graph_zeroshot(file, window_width=5, smooth_baseline=True):
     draw(file + ".csv", 
         TAG, 
         "Time (days)", 
-        "Mean Profit per Microgrid", 
+        "Mean Microgrid Profit ($)", 
         fig_name=file,
         figs_dir=FIGS_DIR, 
         format=FORMAT, 
@@ -94,9 +123,12 @@ def graph_zeroshot(file, window_width=5, smooth_baseline=True):
         window_width=window_width, 
         data_func=data_func,
         color_func=color_func,
-        smooth_baseline=smooth_baseline)
+        smooth_baseline=smooth_baseline,
+        cutoff=4000,
+        legend_font=12)
 
 def graph_zeroshot_all(file, window_width=5, smooth_baseline=True):
+    xticks = [2500 * i for i in range(5)]
     TAG="ray/tune/custom_metrics/agg/reward_mean_mean"
     FIGS_DIR = "figs/"
     FORMAT='png'
@@ -106,10 +138,9 @@ def graph_zeroshot_all(file, window_width=5, smooth_baseline=True):
         if "zeroshot_hnet" in name:
             _, b = name.split("custom")
             b, _ = b.split("_")
-            print(b)
-            return "Few-Shot PFL ({})".format(b)
+            return "Few-Shot PFH ({})".format(b)
         elif "hnet" in name:
-            return "Original PFL"
+            return "Original PFH"
         elif "baseline" in name:
             return "Baseline"
         else:
@@ -131,11 +162,11 @@ def graph_zeroshot_all(file, window_width=5, smooth_baseline=True):
 
     data_func = lambda x: x
     
-    yticks = [200 * i for i in range(4)]
+    yticks = [200 * i for i in range(1, 4)]
     draw(file + ".csv", 
         TAG, 
         "Time (days)", 
-        "Mean Profit per Microgrid", 
+        "Mean Microgrid Profit ($)", 
         fig_name=file,
         figs_dir=FIGS_DIR, 
         format=FORMAT, 
@@ -147,17 +178,18 @@ def graph_zeroshot_all(file, window_width=5, smooth_baseline=True):
         window_width=window_width, 
         data_func=data_func,
         color_func=color_func,
-        smooth_baseline=smooth_baseline)
+        smooth_baseline=smooth_baseline,
+        legend_font=12)
 
 graph_zeroshot("zeroshot_20",  window_width=10, smooth_baseline=True)
 graph_zeroshot_all("zeroshot_all",  window_width=10, smooth_baseline=True)
 
-# graph("medium_10", smooth_baseline=False)
-graph("simple_10", window_width=20, smooth_baseline=True)
+graph("medium_10", window_width=10, smooth_baseline=True)
+graph("simple_10", window_width=10, smooth_baseline=True)
 graph("complex_10",  window_width=10, smooth_baseline=True)
-graph("medium_20")
-graph("simple_20", window_width=20, smooth_baseline=True)
+graph("medium_20",  window_width=10, smooth_baseline=True)
+graph("simple_20", window_width=10, smooth_baseline=True)
 graph("complex_20", window_width=10, smooth_baseline=True)
-graph("simple_05", window_width=20, smooth_baseline=True)
-graph("medium_05", window_width=10)
-graph("complex_05", window_width=20, smooth_baseline=True)
+graph("simple_05", window_width=10, smooth_baseline=True)
+graph("medium_05", window_width=10, smooth_baseline=True)
+graph("complex_05", window_width=10, smooth_baseline=True)
