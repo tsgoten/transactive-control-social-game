@@ -62,6 +62,9 @@ def draw(PATH, TAG, data_dir="data/", days = [], latex = False, data_func=lambda
     groups, _, _ = read_results(PATH, TAG, name_func, cutoff)
     combined = list(groups.items())
     output = ""
+    p_dict = {}     # there is likely a better way of doing this but this is a relatively easy fix
+    name_list = []  # without rewriting code
+
     for col_name, df in combined:
         
         if not name_filter(col_name):
@@ -69,6 +72,7 @@ def draw(PATH, TAG, data_dir="data/", days = [], latex = False, data_func=lambda
             continue
         #print(df)
         name = name_func(col_name)
+        name_list.append(name)
 
         ys = df.iloc[:, 1].to_numpy()
         xs = df.iloc[:, 0].to_numpy()
@@ -96,12 +100,21 @@ def draw(PATH, TAG, data_dir="data/", days = [], latex = False, data_func=lambda
                 p = ys[0] * d
             
             if latex:
-                output += " & " + data_func(p)
+                if name not in p_dict:
+                    p_dict[name] = []
+                p_dict[name].append(p)
+                # output += " & " + data_func(p)
             else:
                 if name == "Baseline":
                     print(name, "\t", d, "\t", p)
                 else:
                     print(name, "\t\t", d, "\t", p)
+    if latex:
+        for i in range(len(days)):
+            # for n in name_list:     # order is not guarenteed to be correct, instead will manually order
+            output += " & " + data_func(p_dict[name_func("hnet")][i])
+            output += " & " + data_func(p_dict[name_func("afl")][i])
+            output += " & " + data_func(p_dict[name_func("baseline")][i])
 
     return output        
 
@@ -131,17 +144,17 @@ def make_table(files, days, latex=False, caption=None):
         if len(days) > 1:
             output = "\\begin{tabular}{ | c "
             for _ in range(len(days)):
-                output += "c c c "
+                output += "| c c c "
             output += "| }"
             print(output)
             print(" \\hline")
             output = " Scenario"
             for d in days:
-                output += " & \\thead{{PFH, \\\\{day}}} & \\thead{{FedAvg, \\\\{day}}} & \\thead{{Baseline, \\\\{day}}}".format(day = d)
+                output += " & \\thead{{PFH \\\\{day}}} & \\thead{{FedAvg \\\\{day}}} & \\thead{{Baseline \\\\{day}}}".format(day = d)
             output +="\\\\ [0.5ex] "
             print(output)
         else:
-            print("\\begin{tabular}{ | c c c c | }")
+            print("\\begin{tabular}{ | c | c c c | }")
             print(" \\hline")
             print(" Scenario & PFH & FedAvg & Baseline \\\\ [0.5ex] ")
 
@@ -180,7 +193,7 @@ def make_table(files, days, latex=False, caption=None):
 
 
 # make_table(["simple_05"], [100, 1000])
-make_table(["simple_05", "medium_05", "complex_05","simple_10", "medium_10", "complex_10", "simple_20", "medium_20",
+make_table(["simple_05", "simple_10", "simple_20", "medium_05", "medium_10",  "medium_20", "complex_05", "complex_10",
                 "complex_20",], [2500, 10000], True, caption="Cumulative profits above base utility pricing, in hundred thousands.")
 
 #        \begin{table}[h!]
