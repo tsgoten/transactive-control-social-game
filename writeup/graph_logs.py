@@ -59,7 +59,7 @@ def read_results(PATH, TAG, name_func, cutoff=10000000):
             
     return groups, group_maxs, group_mins
 
-def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False, err_scale=1, cutoff=1000000000, plot_legend=True, legend_font=16):
+def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None,linewidth=3, axis_width=3, format=".eps", figs_dir="figs/", name_func=lambda x:x, data_func=lambda x: x, fig_name="fig" , window_width=1, reset=True, name_filter=lambda x: True, color_func = None, smooth_baseline = False, err_scale=1, cutoff=1000000000, plot_legend=True, legend_font=16, include_errors=True):
     if data_dir:
         PATH = os.path.join(data_dir, PATH)
     groups, group_maxs, group_mins = read_results(PATH, TAG, name_func, cutoff)
@@ -106,7 +106,7 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
                 errs /= err_scale
                 #min_xs = min_xs[window_width//2:-window_width//2+1]
             #plt.fill_between(max_xs, min_ys, max_ys, alpha=0.2)
-        breakpoint()
+        # breakpoint()
         if color_func == None:
             #plt.errorbar(xs, ys, label=name, linewidth=linewidth, yerr = errs)
             p = plt.plot(xs, ys, label=name, linewidth=linewidth)
@@ -114,7 +114,8 @@ def draw(PATH, TAG, x_label, y_label, data_dir="data/", yticks=None, xticks=None
         else:
             #plt.errorbar(xs, ys, label=name, linewidth=linewidth, c='b', yerr=errs)
             p = plt.plot(xs, ys, label=name, linewidth=linewidth, c=color_func(name))
-        plt.fill_between(xs, (ys - errs)[::1], (ys + errs)[::1], alpha=0.3, interpolate=True, facecolor=p[-1].get_color())
+        if include_errors:
+            plt.fill_between(xs, (ys - errs)[::1], (ys + errs)[::1], alpha=0.3, interpolate=True, facecolor=p[-1].get_color())
     # if plot_norl:
     #     plt.plot(range(max_x), np.ones([max_x])*220, label="No RL", linewidth=linewidth, c="brown")
 

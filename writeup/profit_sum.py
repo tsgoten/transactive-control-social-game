@@ -141,6 +141,7 @@ def make_table(files, days, latex=False, caption=None):
     if latex:
         print("\\begin{table}[h!]")
         print("\\centering")
+        print("\\def\\arraystretch{1.5}")
         if len(days) > 1:
             output = "\\begin{tabular}{ | c "
             for _ in range(len(days)):
@@ -182,7 +183,7 @@ def make_table(files, days, latex=False, caption=None):
     if latex:
         print(" \\hline")
         print("\\end{tabular}")
-        print("\\smallskip")
+        print("\\medskip")
         if caption != None:
             print("\\caption{" + caption + "}")
         elif len(days) > 1:
@@ -195,19 +196,3 @@ def make_table(files, days, latex=False, caption=None):
 # make_table(["simple_05"], [100, 1000])
 make_table(["simple_05", "simple_10", "simple_20", "medium_05", "medium_10",  "medium_20", "complex_05", "complex_10",
                 "complex_20",], [2500, 10000], True, caption="Cumulative profits above base utility pricing, in hundred thousands.")
-
-#        \begin{table}[h!]
-#        \centering
-#        \begin{tabular}{||c c c c||} 
-#        \hline
-#        Col1 & Col2 & Col2 & Col3 \\ [0.5ex] 
-#        \hline\hline
-#        1 & 6 & 87837 & 787 \\ 
-#        2 & 7 & 78 & 5415 \\
-#        3 & 545 & 778 & 7507 \\
-#        4 & 545 & 18744 & 7560 \\
-#        5 & 88 & 788 & 6344 \\ [1ex] 
-#        \hline
-#        \end{tabular}
-#        \caption{Cumulative profits above base utility pricing after 2500 days.}
-#        \end{table}
