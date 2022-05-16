@@ -182,6 +182,8 @@ def pfl_hnet_update(agent, result, args, old_weights):
     hnet_optimizer.zero_grad()
     # update hnet weights
     num_agents = len(curr_weights)
+
+    total_dot = 0
     for agent_id in curr_weights.keys():
         # calculating delta theta
         
@@ -206,6 +208,12 @@ def pfl_hnet_update(agent, result, args, old_weights):
         else:
             new_weights = hnet(int(agent_id))
         new_weight_dict[agent_id] = new_weights
+        # Calculate the dot product of weights and average weight
+        for k in curr_weights[agent_id].keys():
+            total_dot += torch.dot(
+                torch.flatten(torch.from_numpy(curr_weights[agent_id][k])), 
+                torch.flatten(avg_weights[k]))
+    wandb.log({"weight_dot": total_dot}, commit=False)
     # Set weights of each worker, including remote replicas
     for w in agent.workers.remote_workers():
         w.set_weights.remote(new_weight_dict)
@@ -216,7 +224,9 @@ def afl_update(agent, result, args, initial_update=False):
     curr_weights = agent.get_weights()
     avg_weights = OrderedDict()
     normalizer = 1 if initial_update else len(curr_weights) 
+
     with torch.no_grad():
+        total_dot = 0
         for agent_id in curr_weights.keys():
             for k in curr_weights[agent_id].keys():
                 curr_weight_tensor = torch.tensor(curr_weights[agent_id][k], device=device)
@@ -224,6 +234,13 @@ def afl_update(agent, result, args, initial_update=False):
                     avg_weights[k] = curr_weight_tensor / normalizer
                 elif not initial_update:
                     avg_weights[k] += curr_weight_tensor / normalizer
+            # Calculate the dot product of weights and average weight
+            for k in curr_weights[agent_id].keys():
+                total_dot += torch.dot(
+                    torch.flatten(torch.from_numpy(curr_weights[agent_id][k])), 
+                    torch.flatten(avg_weights[k]))
+        print("AFL total dot: {}".format(total_dot))
+        wandb.log({"weight_dot": total_dot}, commit=False)
     new_weight_dict = {}
     for agent_id in curr_weights.keys():
         new_weight_dict[agent_id] = {k: v.clone().detach() for k, v in avg_weights.items()}#deepcopy(avg_weights)
