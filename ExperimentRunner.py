@@ -174,6 +174,9 @@ def get_agent(args):
 
     # Add more algorithms here. 
 
+def normalize(x):
+    return x / torch.norm(x)
+
 def pfl_hnet_update(agent, result, args, old_weights):
     # Get list of weights of each worker, including remote replicas
     #curr_weights = trainer.workers.foreach_worker(lambda ev: ev.get_policy().get_weights())
@@ -202,6 +205,8 @@ def pfl_hnet_update(agent, result, args, old_weights):
     if args.hnet_save_ckpt is not None:
         torch.save(hnet.state_dict(), args.hnet_save_ckpt)
     new_weight_dict = {}
+    weight_dots = {}
+
     for agent_id in curr_weights.keys():
         if args.use_agg_data:
             new_weights = hnet(agg_data_dict[agent_id])
@@ -210,15 +215,25 @@ def pfl_hnet_update(agent, result, args, old_weights):
         new_weight_dict[agent_id] = new_weights
         # Calculate the dot product of weights and average weight
         for k in curr_weights[agent_id].keys():
-            total_dot += torch.dot(
-                torch.flatten(torch.from_numpy(curr_weights[agent_id][k])), 
-                torch.flatten(avg_weights[k]))
-    wandb.log({"weight_dot": total_dot}, commit=False)
+            if ".weight" in k: # exclude biases and batch norm params
+                curr_w = torch.flatten(torch.from_numpy(curr_weights[agent_id][k]).to(device))
+                old_w = torch.flatten(old_weights[agent_id][k].to(device))
+                delta_h = torch.flatten(new_weights[k]) - old_w
+                delta_l = curr_w - old_w
+                layer_dot = torch.dot(
+                    normalize(delta_h), 
+                    normalize(delta_l))
+                key = "dots/" + k
+                weight_dots[key] = (layer_dot + weight_dots.get(key, 0)) / num_agents
+    avg_dot = sum(weight_dots.values()) / len(weight_dots)
+    weight_dots["dots/avg"] = avg_dot
+    weight_dots["dots/max"] = max(weight_dots.values())
+    #wandb.log({"weight_dot": total_dot}, commit=False)
     # Set weights of each worker, including remote replicas
     for w in agent.workers.remote_workers():
         w.set_weights.remote(new_weight_dict)
     #agent.set_weights(detach_weights(new_weight_dict))
-    return result, new_weight_dict
+    return result, new_weight_dict, weight_dots
 
 def afl_update(agent, result, args, initial_update=False):
     curr_weights = agent.get_weights()
@@ -248,7 +263,7 @@ def afl_update(agent, result, args, initial_update=False):
     for w in agent.workers.remote_workers():
         w.set_weights.remote(new_weight_dict)
     #agent.set_weights(detach_weights(new_weight_dict))
-    return result, new_weight_dict
+    return result, new_weight_dict, {}
 
 def detach_weights(weights):
     new_weights = {}
@@ -296,16 +311,20 @@ def train(agent, args):
         result = agent.train()
         training_steps = result["timesteps_total"]
         num_train_steps += 1
+        dots = None
         if args.gym_env in ["socialgame_multi", "microgrid_multi"]:
             if args.use_hnet and num_train_steps % args.hnet_num_local_steps == 0:
                 print("****\nHNET UPDATE AT TIMESTEP {}\n****".format(training_steps))
-                result, weights = pfl_hnet_update(agent, result, args, old_weights=weights)
+                result, weights, dots = pfl_hnet_update(agent, result, args, old_weights=weights)
             if algo == "afl_ppo" and num_train_steps % args.afl_num_local_steps == 0:
                 print("****\nAFL UPDATE AT TIMESTEP {}\n****".format(training_steps))
-                result, weights = afl_update(agent, result, args, initial_update=False)
+                result, weights, dots = afl_update(agent, result, args, initial_update=False)
         
-        log = {name: result[name] for name in to_log}
-        wandb.log(result['custom_metrics'])
+        log = result['custom_metrics']
+        if dots:
+            log.update(dots)
+        log["ray_num_steps_sampled"] = result["info"]["num_steps_sampled"]
+        wandb.log(log)
         
 
     #list of different local agents
