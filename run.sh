@@ -11,5 +11,3 @@ then
 fi
 
 docker run -it $GPU_FLAGS --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 --net=host -v "$(pwd):$WORKDIR" tc-temp
-docker tag tc-temp lucasspangher/socialgame_v1:austin
-docker push lucasspangher/socialgame_v1:austin

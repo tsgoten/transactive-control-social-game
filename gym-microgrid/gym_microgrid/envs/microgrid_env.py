@@ -704,7 +704,6 @@ class CounterfactualMicrogridEnvRLLib(MicrogridEnvRLLib, MultiAgentEnv):
             if self.action_space_string == 'continuous':
                 action_real = np.clip(action_real, -1, 1)
                 action_shadow = np.clip(action_shadow, -1, 1)
-                # TODO: ask Lucas about this
             else:
                 print("wrong action_space_string")
                 raise AssertionError
